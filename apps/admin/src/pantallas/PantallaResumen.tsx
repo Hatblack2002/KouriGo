@@ -1,32 +1,39 @@
 /**
  * Resumen operativo con métricas REALES de la tabla `orders` bajo RLS
  * (README sección 14.1: pedidos activos, pendientes, completados,
- * incidencias y volumen de operación). Sin datos de ejemplo.
+ * incidencias y volumen de operación). Sin datos de ejemplo. Etiquetas del
+ * diccionario de idiomas (README sección 9).
  */
 import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ESTADOS_PEDIDO } from "@kourigo/domain";
 import { contarPedidosPorEstado, listarPedidos, type FilaPedido } from "../api/pedidos";
-import {
-  Cargando,
-  InsigniaEstado,
-  MensajeError,
-  nombreEstadoPedido,
-  SinDatos,
-} from "../componentes";
+import { Cargando, InsigniaEstado, MensajeError, SinDatos } from "../componentes";
+import { etiquetaEstadoPedido, useIdioma, type ClaveTexto } from "../idiomas";
 import { formatearFecha } from "../formato";
 
-const ETIQUETAS_RESUMEN: readonly { clave: string; etiqueta: string }[] = [
-  { clave: "pending", etiqueta: "Pendientes" },
-  { clave: "offered", etiqueta: "Ofrecidos" },
-  { clave: "accepted", etiqueta: "Aceptados" },
-  { clave: "in_transit", etiqueta: "En tránsito" },
-  { clave: "delivered", etiqueta: "Entregados" },
-  { clave: "issue", etiqueta: "Incidencias" },
-  { clave: "cancelled", etiqueta: "Cancelados" },
+const CLAVES_RESUMEN: readonly ClaveTexto[] = [
+  "resumen_pendientes",
+  "resumen_ofrecidos",
+  "resumen_aceptados",
+  "resumen_transito",
+  "resumen_entregados",
+  "resumen_incidencias",
+  "resumen_cancelados",
 ];
 
+const ESTADO_POR_CLAVE: Record<string, string> = {
+  resumen_pendientes: "pending",
+  resumen_ofrecidos: "offered",
+  resumen_aceptados: "accepted",
+  resumen_transito: "in_transit",
+  resumen_entregados: "delivered",
+  resumen_incidencias: "issue",
+  resumen_cancelados: "cancelled",
+};
+
 export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient }) {
+  const { t, idioma } = useIdioma();
   const [conteos, setConteos] = useState<Record<string, number> | null>(null);
   const [recientes, setRecientes] = useState<FilaPedido[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +73,7 @@ export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient 
   }, [cliente]);
 
   if (cargando) {
-    return <Cargando texto="Leyendo las métricas reales de la operación…" />;
+    return <Cargando texto={t("leyendo_metricas")} />;
   }
 
   const total = conteos?.__total ?? 0;
@@ -84,41 +91,43 @@ export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient 
       <div className="metricas">
         <div className="metrica">
           <span className="cifra">{total}</span>
-          <span className="etiqueta">Pedidos totales</span>
+          <span className="etiqueta">{t("metrica_total")}</span>
         </div>
         <div className="metrica">
           <span className="cifra">{activos}</span>
-          <span className="etiqueta">En curso</span>
+          <span className="etiqueta">{t("metrica_curso")}</span>
         </div>
-        {ETIQUETAS_RESUMEN.map((item) => (
-          <div className="metrica" key={item.clave}>
-            <span className="cifra">{conteos?.[item.clave] ?? 0}</span>
-            <span className="etiqueta">{item.etiqueta}</span>
+        {CLAVES_RESUMEN.map((clave) => (
+          <div className="metrica" key={clave}>
+            <span className="cifra">{conteos?.[ESTADO_POR_CLAVE[clave]] ?? 0}</span>
+            <span className="etiqueta">{t(clave)}</span>
           </div>
         ))}
       </div>
       <section className="tarjeta">
-        <h2>Últimos pedidos</h2>
+        <h2>{t("ultimos_pedidos")}</h2>
         {recientes.length === 0 ? (
-          <SinDatos texto="Todavía no hay pedidos en el proyecto real." />
+          <SinDatos texto={t("sin_pedidos_proyecto")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Creado</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-                <th>Recogida</th>
-                <th>Destino</th>
-                <th>Tarifa</th>
+                <th>{t("th_creado")}</th>
+                <th>{t("th_tipo")}</th>
+                <th>{t("th_estado")}</th>
+                <th>{t("th_recogida")}</th>
+                <th>{t("th_destino")}</th>
+                <th>{t("th_tarifa")}</th>
               </tr>
             </thead>
             <tbody>
               {recientes.map((pedido) => (
                 <tr key={pedido.id}>
-                  <td>{formatearFecha(pedido.created_at)}</td>
+                  <td>{formatearFecha(pedido.created_at, idioma)}</td>
                   <td>
-                    {pedido.order_type === "assisted_purchase" ? "compra asistida" : "entrega"}
+                    {pedido.order_type === "assisted_purchase"
+                      ? t("tipo_compra_asistida")
+                      : t("tipo_entrega")}
                   </td>
                   <td>
                     <InsigniaEstado estado={pedido.status} />
@@ -135,10 +144,11 @@ export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient 
         )}
       </section>
       <section className="tarjeta">
-        <h2>Estados del modelo (referencia)</h2>
+        <h2>{t("resumen_estados_titulo")}</h2>
         <p className="nota">
-          Los diez estados del ciclo de vida: {ESTADOS_PEDIDO.map(nombreEstadoPedido).join(" · ")}.{" "}
-          Las métricas de arriba solo muestran estados con pedidos reales.
+          {t("estados_ciclo")}{" "}
+          {ESTADOS_PEDIDO.map((estado) => etiquetaEstadoPedido(idioma, estado)).join(" · ")}{" "}
+          {t("metricas_reales_nota")}
         </p>
       </section>
     </>

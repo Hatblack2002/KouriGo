@@ -3,7 +3,8 @@
  * transiciones vía la Edge Function `transicion-pedido` y despacho vía
  * `despachar-pedido`. Las correcciones administrativas (pares exclusivos del
  * rol) exigen motivo (README secciones 4 y 12) y el servidor lo vuelve a
- * imponer y registra en la auditoría.
+ * imponer y registra en la auditoría. Etiquetas del diccionario de idiomas
+ * (README sección 9).
  */
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -33,6 +34,7 @@ import {
   SinDatos,
   Tarjeta,
 } from "../componentes";
+import { useIdioma } from "../idiomas";
 import { formatearDinero, formatearFecha } from "../formato";
 
 interface Props {
@@ -50,6 +52,7 @@ export function PantallaDetallePedido({
   pedidoId,
   alVolver,
 }: Props) {
+  const { t, idioma } = useIdioma();
   const [pedido, setPedido] = useState<FilaPedido | null>(null);
   const [items, setItems] = useState<FilaItem[]>([]);
   const [eventos, setEventos] = useState<FilaEvento[]>([]);
@@ -69,7 +72,7 @@ export function PantallaDetallePedido({
     setError(null);
     const resPedido = await obtenerPedido(cliente, pedidoId);
     if (resPedido.error !== null || resPedido.pedido === null) {
-      setError(resPedido.error ?? "El pedido no existe o no es visible para tu sesión.");
+      setError(resPedido.error ?? t("no_pedido_visible"));
       setPedido(null);
       setCargando(false);
       return;
@@ -96,7 +99,7 @@ export function PantallaDetallePedido({
       })),
     );
     setCargando(false);
-  }, [cliente, pedidoId]);
+  }, [cliente, pedidoId, t]);
 
   useEffect(() => {
     void cargar();
@@ -104,7 +107,7 @@ export function PantallaDetallePedido({
 
   function nombreDe(usuarioId: string | null): string {
     if (usuarioId === null) {
-      return "sistema";
+      return t("sistema");
     }
     const perfil = perfiles.find((p) => p.id === usuarioId);
     if (perfil !== undefined && perfil.full_name !== null) {
@@ -122,7 +125,7 @@ export function PantallaDetallePedido({
       return;
     }
     if (elegida !== null && elegida.correccion && motivo.trim().length === 0) {
-      setError("La corrección administrativa exige un motivo registrado.");
+      setError(t("err_motivo_correccion"));
       return;
     }
     setOcupado(true);
@@ -137,11 +140,11 @@ export function PantallaDetallePedido({
         elegida !== null && elegida.correccion ? motivo : null,
       );
       if (!resultado.ok) {
-        setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);
+        setError(resultado.mensajeError ?? `${t("err_funcion_estado")} ${resultado.estado}.`);
         return;
       }
       setAviso(
-        `Transición aplicada: ${resultado.datos?.de ?? "?"} → ${resultado.datos?.a ?? "?"}.`,
+        `${t("ok_transicion")} ${resultado.datos?.de ?? "?"} → ${resultado.datos?.a ?? "?"}.`,
       );
       setSeleccionTransicion("");
       setMotivo("");
@@ -153,7 +156,7 @@ export function PantallaDetallePedido({
 
   async function despachar() {
     if (pedido === null || repartidorElegido.length === 0) {
-      setError("Elige un repartidor aprobado para el despacho.");
+      setError(t("err_elegir_repartidor"));
       return;
     }
     setOcupado(true);
@@ -167,10 +170,10 @@ export function PantallaDetallePedido({
         repartidorElegido,
       );
       if (!resultado.ok) {
-        setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);
+        setError(resultado.mensajeError ?? `${t("err_funcion_estado")} ${resultado.estado}.`);
         return;
       }
-      setAviso("Oferta enviada al repartidor (estado offered).");
+      setAviso(t("ok_oferta"));
       setRepartidorElegido("");
       await cargar();
     } finally {
@@ -179,7 +182,7 @@ export function PantallaDetallePedido({
   }
 
   if (cargando) {
-    return <Cargando texto="Leyendo el pedido real…" />;
+    return <Cargando texto={t("leyendo_pedido")} />;
   }
 
   if (pedido === null) {
@@ -187,7 +190,7 @@ export function PantallaDetallePedido({
       <>
         <MensajeError mensaje={error} />
         <button className="secundario" onClick={alVolver}>
-          Volver a la lista
+          {t("volver_lista")}
         </button>
       </>
     );
@@ -196,53 +199,55 @@ export function PantallaDetallePedido({
   return (
     <>
       <button className="secundario" onClick={alVolver}>
-        ← Volver a la lista
+        ← {t("volver_lista")}
       </button>
       <MensajeError mensaje={error} />
       <MensajeOk mensaje={aviso} />
-      <Tarjeta titulo={`Pedido ${pedido.id.slice(0, 8)}…`}>
+      <Tarjeta titulo={`${t("pedido_titulo")} ${pedido.id.slice(0, 8)}…`}>
         <dl className="ficha">
-          <dt>Estado</dt>
+          <dt>{t("f_estado")}</dt>
           <dd>
             <InsigniaEstado estado={pedido.status} />
           </dd>
-          <dt>Tipo</dt>
-          <dd>{pedido.order_type === "assisted_purchase" ? "compra asistida" : "entrega"}</dd>
-          <dt>Recogida</dt>
+          <dt>{t("f_tipo")}</dt>
+          <dd>
+            {pedido.order_type === "assisted_purchase" ? t("tipo_compra_asistida") : t("tipo_entrega")}
+          </dd>
+          <dt>{t("f_recogida")}</dt>
           <dd>{pedido.pickup_address_text}</dd>
-          <dt>Tienda (compra asistida)</dt>
+          <dt>{t("f_tienda")}</dt>
           <dd>{pedido.store_address_text ?? "—"}</dd>
-          <dt>Destino</dt>
+          <dt>{t("f_destino")}</dt>
           <dd>{pedido.dropoff_address_text}</dd>
-          <dt>Cliente</dt>
+          <dt>{t("f_cliente")}</dt>
           <dd>{nombreDe(pedido.client_id)}</dd>
-          <dt>Tarifa de servicio</dt>
+          <dt>{t("f_tarifa_servicio")}</dt>
           <dd>{formatearDinero(pedido.service_fee_amount, pedido.currency)}</dd>
-          <dt>Notas</dt>
+          <dt>{t("f_notas")}</dt>
           <dd>{pedido.notes ?? "—"}</dd>
-          <dt>Creado</dt>
-          <dd>{formatearFecha(pedido.created_at)}</dd>
-          <dt>Actualizado</dt>
-          <dd>{formatearFecha(pedido.updated_at)}</dd>
+          <dt>{t("f_creado")}</dt>
+          <dd>{formatearFecha(pedido.created_at, idioma)}</dd>
+          <dt>{t("f_actualizado")}</dt>
+          <dd>{formatearFecha(pedido.updated_at, idioma)}</dd>
         </dl>
       </Tarjeta>
-      <Tarjeta titulo="Transiciones permitidas para el administrador">
+      <Tarjeta titulo={t("transiciones_titulo")}>
         {opciones.length === 0 ? (
-          <SinDatos texto="El pedido está en un estado final: no admite más transiciones." />
+          <SinDatos texto={t("estado_final_nota")} />
         ) : (
           <div className="acciones">
             <div>
               <label>
-                Mover a
+                {t("mover_a")}
                 <select
                   value={seleccionTransicion}
                   onChange={(e) => setSeleccionTransicion(e.target.value as EstadoPedido)}
                 >
-                  <option value="">— elegir estado —</option>
+                  <option value="">{t("elegir_estado")}</option>
                   {opciones.map((opcion) => (
                     <option key={opcion.destino} value={opcion.destino}>
                       {opcion.destino}
-                      {opcion.correccion ? " (corrección con motivo)" : ""}
+                      {opcion.correccion ? t("correccion_etiqueta") : ""}
                     </option>
                   ))}
                 </select>
@@ -251,12 +256,12 @@ export function PantallaDetallePedido({
             {elegida !== null && elegida.correccion ? (
               <div>
                 <label>
-                  Motivo (obligatorio, se registra en auditoría)
+                  {t("motivo_label")}
                   <textarea
                     value={motivo}
                     maxLength={500}
                     onChange={(e) => setMotivo(e.target.value)}
-                    placeholder="Justificación de la corrección administrativa"
+                    placeholder={t("motivo_placeholder")}
                   />
                 </label>
               </div>
@@ -266,30 +271,26 @@ export function PantallaDetallePedido({
               disabled={ocupado || seleccionTransicion === ""}
               onClick={() => void aplicarTransicion()}
             >
-              Aplicar transición
+              {t("aplicar_transicion")}
             </button>
           </div>
         )}
-        <p className="nota">
-          Las transiciones pasan SIEMPRE por la función `transicion-pedido`: el actor lo determina
-          el servidor desde el JWT y el trigger SQL vuelve a imponer la matriz. Los pares exclusivos
-          del administrador son correcciones con motivo y auditoría.
-        </p>
+        <p className="nota">{t("transicion_nota")}</p>
       </Tarjeta>
       {pedido.status === "pending" ? (
-        <Tarjeta titulo="Despacho (ofertar a un repartidor aprobado)">
+        <Tarjeta titulo={t("despacho_titulo")}>
           {repartidores.length === 0 ? (
-            <SinDatos texto="No hay repartidores con expediente aprobado y cuenta activa." />
+            <SinDatos texto={t("sin_repartidores")} />
           ) : (
             <div className="acciones">
               <div>
                 <label>
-                  Repartidor
+                  {t("th_repartidor")}
                   <select
                     value={repartidorElegido}
                     onChange={(e) => setRepartidorElegido(e.target.value)}
                   >
-                    <option value="">— elegir repartidor —</option>
+                    <option value="">{t("elegir_repartidor")}</option>
                     {repartidores.map((repartidor) => (
                       <option key={repartidor.id} value={repartidor.id}>
                         {repartidor.full_name ?? repartidor.id.slice(0, 8)}
@@ -303,27 +304,24 @@ export function PantallaDetallePedido({
                 disabled={ocupado || repartidorElegido.length === 0}
                 onClick={() => void despachar()}
               >
-                Despachar pedido
+                {t("despachar_pedido")}
               </button>
             </div>
           )}
-          <p className="nota">
-            El despacho usa la función `despachar-pedido` (RPC atómico por service_role: crea la
-            asignación, mueve el pedido a offered y registra la auditoría en una única transacción).
-          </p>
+          <p className="nota">{t("despacho_nota")}</p>
         </Tarjeta>
       ) : null}
-      <Tarjeta titulo="Artículos">
+      <Tarjeta titulo={t("items_titulo")}>
         {items.length === 0 ? (
-          <SinDatos texto="El pedido no tiene artículos registrados." />
+          <SinDatos texto={t("sin_items")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Descripción</th>
-                <th>Cantidad</th>
-                <th>Precio estimado</th>
-                <th>Precio real</th>
+                <th>{t("th_descripcion")}</th>
+                <th>{t("th_cantidad")}</th>
+                <th>{t("th_precio_estimado")}</th>
+                <th>{t("th_precio_real")}</th>
               </tr>
             </thead>
             <tbody>
@@ -339,18 +337,18 @@ export function PantallaDetallePedido({
           </table>
         )}
       </Tarjeta>
-      <Tarjeta titulo="Asignaciones">
+      <Tarjeta titulo={t("asignaciones_titulo")}>
         {asignaciones.length === 0 ? (
-          <SinDatos texto="El pedido no tiene asignaciones todavía." />
+          <SinDatos texto={t("sin_asignaciones")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Repartidor</th>
-                <th>Estado</th>
-                <th>Ofrecida</th>
-                <th>Aceptada</th>
-                <th>Completada</th>
+                <th>{t("th_repartidor")}</th>
+                <th>{t("th_estado")}</th>
+                <th>{t("th_ofrecida")}</th>
+                <th>{t("th_aceptada")}</th>
+                <th>{t("th_completada")}</th>
               </tr>
             </thead>
             <tbody>
@@ -358,33 +356,33 @@ export function PantallaDetallePedido({
                 <tr key={asignacion.id}>
                   <td>{nombreDe(asignacion.courier_user_id)}</td>
                   <td>{asignacion.status}</td>
-                  <td>{formatearFecha(asignacion.offered_at)}</td>
-                  <td>{formatearFecha(asignacion.accepted_at)}</td>
-                  <td>{formatearFecha(asignacion.completed_at)}</td>
+                  <td>{formatearFecha(asignacion.offered_at, idioma)}</td>
+                  <td>{formatearFecha(asignacion.accepted_at, idioma)}</td>
+                  <td>{formatearFecha(asignacion.completed_at, idioma)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </Tarjeta>
-      <Tarjeta titulo="Historial de eventos">
+      <Tarjeta titulo={t("eventos_titulo")}>
         {eventos.length === 0 ? (
-          <SinDatos texto="Sin eventos registrados." />
+          <SinDatos texto={t("sin_eventos")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Cuando</th>
-                <th>Evento</th>
-                <th>Transición</th>
-                <th>Actor</th>
-                <th>Detalle</th>
+                <th>{t("th_cuando")}</th>
+                <th>{t("th_evento")}</th>
+                <th>{t("th_transicion")}</th>
+                <th>{t("th_actor")}</th>
+                <th>{t("th_detalle")}</th>
               </tr>
             </thead>
             <tbody>
               {eventos.map((evento) => (
                 <tr key={evento.id}>
-                  <td>{formatearFecha(evento.created_at)}</td>
+                  <td>{formatearFecha(evento.created_at, idioma)}</td>
                   <td>{evento.event_type}</td>
                   <td>
                     {evento.from_status ?? "—"} → {evento.to_status ?? "—"}
@@ -392,7 +390,7 @@ export function PantallaDetallePedido({
                   <td>{nombreDe(evento.actor_id)}</td>
                   <td>
                     {typeof evento.metadata["motivo"] === "string"
-                      ? `motivo: ${String(evento.metadata["motivo"])}`
+                      ? `${t("motivo_prefijo")} ${String(evento.metadata["motivo"])}`
                       : ""}
                   </td>
                 </tr>

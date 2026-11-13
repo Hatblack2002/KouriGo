@@ -14,6 +14,7 @@
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import type { ConfiguracionPublica } from "./configuracion";
+import type { ClaveTexto } from "./idiomas";
 
 export interface SesionActiva {
   readonly usuarioId: string;
@@ -23,16 +24,20 @@ export interface SesionActiva {
 
 export type ResultadoSesion =
   | { readonly tipo: "ok"; readonly sesion: SesionActiva }
-  | { readonly tipo: "error"; readonly mensaje: string };
+  | {
+      readonly tipo: "error";
+      readonly mensaje: string;
+      readonly clave: ClaveTexto | null;
+    };
 
 export type ResultadoSesionRestaurada =
   | { readonly tipo: "ok"; readonly sesion: SesionActiva }
   | { readonly tipo: "sin-sesion" }
-  | { readonly tipo: "error"; readonly mensaje: string };
+  | { readonly tipo: "error"; readonly mensaje: string; readonly clave: ClaveTexto | null };
 
 export type ResultadoRol =
   | { readonly tipo: "ok"; readonly administrador: boolean }
-  | { readonly tipo: "error"; readonly mensaje: string };
+  | { readonly tipo: "error"; readonly mensaje: string; readonly clave: ClaveTexto | null };
 
 /** Cliente de Supabase con sesión persistente del navegador (localStorage). */
 export function crearClienteAdmin(configuracion: ConfiguracionPublica): SupabaseClient {
@@ -53,25 +58,30 @@ function aSesionActiva(sesion: Session): SesionActiva {
   };
 }
 
-const CLAVES_ERROR: Record<string, string> = {
-  invalid_credentials: "Correo o contraseña incorrectos.",
-  "Invalid login credentials": "Correo o contraseña incorrectos.",
-  email_not_confirmed: "El correo de la cuenta aún no está confirmado.",
-  user_banned: "La cuenta está suspendida.",
-  too_many_requests: "Demasiados intentos: espera unos minutos y vuelve a probar.",
-};
+/**
+ * Clave de traducción para los errores de autenticación conocidos (README
+ * sección 9: los mensajes visibles salen del diccionario de idiomas). El
+ * mensaje técnico original se conserva para diagnóstico y registro.
+ */
+const CLAVES_ERROR: readonly { patron: string; clave: ClaveTexto }[] = [
+  { patron: "invalid_credentials", clave: "credenciales_invalidas" },
+  { patron: "Invalid login credentials", clave: "credenciales_invalidas" },
+  { patron: "email_not_confirmed", clave: "correo_no_confirmado" },
+  { patron: "user_banned", clave: "cuenta_suspendida" },
+  { patron: "too_many_requests", clave: "limite_intentos" },
+];
 
-function mensajeDeError(error: unknown): string {
+function mensajeDeError(error: unknown): { mensaje: string; clave: ClaveTexto | null } {
   if (typeof error === "object" && error !== null && "message" in error) {
     const texto = String((error as { message: unknown }).message);
-    for (const [clave, mensaje] of Object.entries(CLAVES_ERROR)) {
-      if (texto.includes(clave)) {
-        return mensaje;
+    for (const { patron, clave } of CLAVES_ERROR) {
+      if (texto.includes(patron)) {
+        return { mensaje: texto, clave };
       }
     }
-    return texto;
+    return { mensaje: texto, clave: null };
   }
-  return "No se pudo completar la operación de autenticación.";
+  return { mensaje: "No se pudo completar la operación de autenticación.", clave: null };
 }
 
 /** Inicio de sesión real (correo + contraseña) contra Supabase Auth. */
@@ -85,7 +95,8 @@ export async function iniciarSesion(
     password: contrasena,
   });
   if (error !== null || data.session === null) {
-    return { tipo: "error", mensaje: mensajeDeError(error) };
+    const fallo = mensajeDeError(error);
+    return { tipo: "error", mensaje: fallo.mensaje, clave: fallo.clave };
   }
   return { tipo: "ok", sesion: aSesionActiva(data.session) };
 }
@@ -99,7 +110,8 @@ export async function cerrarSesion(cliente: SupabaseClient): Promise<void> {
 export async function sesionActual(cliente: SupabaseClient): Promise<ResultadoSesionRestaurada> {
   const { data, error } = await cliente.auth.getSession();
   if (error !== null) {
-    return { tipo: "error", mensaje: mensajeDeError(error) };
+    const fallo = mensajeDeError(error);
+    return { tipo: "error", mensaje: fallo.mensaje, clave: fallo.clave };
   }
   if (data.session === null) {
     return { tipo: "sin-sesion" };
@@ -120,12 +132,16 @@ export async function leerRolAdministrador(cliente: SupabaseClient): Promise<Res
     .eq("role", "admin")
     .eq("status", "active");
   if (error !== null) {
-    return { tipo: "error", mensaje: error.message };
+    return { tipo: "error", mensaje: error.message, clave: null };
   }
   const { data: datosSesion } = await cliente.auth.getSession();
   const usuarioId = datosSesion.session?.user.id;
   if (typeof usuarioId !== "string" || usuarioId.length === 0) {
-    return { tipo: "error", mensaje: "La sesión no está activa: vuelve a iniciar sesión." };
+    return {
+      tipo: "error",
+      mensaje: "La sesión no está activa: vuelve a iniciar sesión.",
+      clave: "sesion_inactiva",
+    };
   }
   const administrador = (data ?? []).some((fila) => fila.user_id === usuarioId);
   return { tipo: "ok", administrador };

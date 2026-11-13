@@ -3,6 +3,7 @@
  * (URLs firmadas por `documento-firmado`), revisión documento a documento y
  * decisiones del caso por la Edge Function `decision-verificacion` con el
  * motivo y el método que exige la matriz (trigger SQL los vuelve a imponer).
+ * Etiquetas del diccionario de idiomas (README sección 9).
  */
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -32,6 +33,7 @@ import {
   SinDatos,
   Tarjeta,
 } from "../componentes";
+import { etiquetaDocumento, useIdioma } from "../idiomas";
 import { formatearFecha } from "../formato";
 
 interface Props {
@@ -42,15 +44,6 @@ interface Props {
   readonly alVolver: () => void;
 }
 
-const NOMBRES_DOCUMENTO: Record<string, string> = {
-  national_id_front: "cédula (anverso)",
-  national_id_back: "cédula (reverso)",
-  passport: "pasaporte",
-  selfie: "selfie",
-  certificate_good_conduct: "certificat de bonnes vie et mœurs",
-  driver_license: "permis de conduire",
-};
-
 export function PantallaDetalleExpediente({
   cliente,
   configuracion,
@@ -58,6 +51,7 @@ export function PantallaDetalleExpediente({
   casoId,
   alVolver,
 }: Props) {
+  const { t, idioma } = useIdioma();
   const [caso, setCaso] = useState<FilaCaso | null>(null);
   const [documentos, setDocumentos] = useState<FilaDocumento[]>([]);
   const [eventos, setEventos] = useState<FilaEventoExpediente[]>([]);
@@ -77,7 +71,7 @@ export function PantallaDetalleExpediente({
     setError(null);
     const resCaso = await obtenerCaso(cliente, casoId);
     if (resCaso.error !== null || resCaso.caso === null) {
-      setError(resCaso.error ?? "El caso no existe o no es visible para tu sesión.");
+      setError(resCaso.error ?? t("no_caso_visible"));
       setCaso(null);
       setCargando(false);
       return;
@@ -95,7 +89,7 @@ export function PantallaDetalleExpediente({
       setError(resDocs.error);
     }
     setCargando(false);
-  }, [cliente, casoId]);
+  }, [cliente, casoId, t]);
 
   useEffect(() => {
     void cargar();
@@ -103,7 +97,7 @@ export function PantallaDetalleExpediente({
 
   function nombreDe(usuarioId: string | null): string {
     if (usuarioId === null) {
-      return "sistema";
+      return t("sistema");
     }
     const perfil = perfiles.find((p) => p.id === usuarioId);
     if (perfil !== undefined && perfil.full_name !== null) {
@@ -119,11 +113,11 @@ export function PantallaDetalleExpediente({
       return;
     }
     if (opcionElegida.requiereMotivo && motivo.trim().length === 0) {
-      setError("La decisión exige un motivo registrado.");
+      setError(t("err_motivo_decision"));
       return;
     }
     if (opcionElegida.requiereMetodo && metodo === "") {
-      setError("La decisión exige registrar el método de verificación.");
+      setError(t("err_metodo"));
       return;
     }
     setOcupado(true);
@@ -137,10 +131,10 @@ export function PantallaDetalleExpediente({
         metodo: opcionElegida.requiereMetodo && metodo !== "" ? metodo : null,
       });
       if (!resultado.ok) {
-        setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);
+        setError(resultado.mensajeError ?? `${t("err_funcion_estado")} ${resultado.estado}.`);
         return;
       }
-      setAviso(`Decisión aplicada: ${resultado.datos?.decision ?? "?"}.`);
+      setAviso(`${t("ok_decision")} ${resultado.datos?.decision ?? "?"}.`);
       setOpcionElegida(null);
       setMotivo("");
       setMetodo("");
@@ -158,11 +152,11 @@ export function PantallaDetalleExpediente({
     try {
       const resultado = await pedirUrlFirmada(configuracion, sesion.accessToken, documentoId);
       if (!resultado.ok || resultado.datos === null) {
-        setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);
+        setError(resultado.mensajeError ?? `${t("err_funcion_estado")} ${resultado.estado}.`);
         return;
       }
       setUrlFirmada({ doc: documentoId, url: resultado.datos.url_firmada });
-      setAviso(`URL firmada emitida (${resultado.datos.expira_en_segundos} s de vigencia).`);
+      setAviso(`${t("ok_url_firmada")} (${resultado.datos.expira_en_segundos} s).`);
     } finally {
       setOcupado(false);
     }
@@ -183,12 +177,10 @@ export function PantallaDetalleExpediente({
         notas: notasDocumento.trim().length > 0 ? notasDocumento.trim() : null,
       });
       if (!resultado.ok) {
-        setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);
+        setError(resultado.mensajeError ?? `${t("err_funcion_estado")} ${resultado.estado}.`);
         return;
       }
-      setAviso(
-        `Documento marcado como ${estadoRevision === "accepted" ? "aceptado" : "rechazado"}.`,
-      );
+      setAviso(estadoRevision === "accepted" ? t("ok_doc_aceptado") : t("ok_doc_rechazado"));
       setNotasDocumento("");
       await cargar();
     } finally {
@@ -197,7 +189,7 @@ export function PantallaDetalleExpediente({
   }
 
   if (cargando) {
-    return <Cargando texto="Leyendo el expediente real…" />;
+    return <Cargando texto={t("leyendo_expediente")} />;
   }
 
   if (caso === null) {
@@ -205,7 +197,7 @@ export function PantallaDetalleExpediente({
       <>
         <MensajeError mensaje={error} />
         <button className="secundario" onClick={alVolver}>
-          Volver a la lista
+          {t("volver_lista")}
         </button>
       </>
     );
@@ -214,36 +206,36 @@ export function PantallaDetalleExpediente({
   return (
     <>
       <button className="secundario" onClick={alVolver}>
-        ← Volver a la lista
+        ← {t("volver_lista")}
       </button>
       <MensajeError mensaje={error} />
       <MensajeOk mensaje={aviso} />
-      <Tarjeta titulo={`Expediente ${caso.id.slice(0, 8)}…`}>
+      <Tarjeta titulo={`${t("expediente_titulo")} ${caso.id.slice(0, 8)}…`}>
         <dl className="ficha">
-          <dt>Estado</dt>
+          <dt>{t("f_estado")}</dt>
           <dd>
             <InsigniaExpediente estado={caso.status} />
           </dd>
-          <dt>Repartidor</dt>
+          <dt>{t("f_repartidor")}</dt>
           <dd>{nombreDe(caso.courier_user_id)}</dd>
-          <dt>Presentado</dt>
-          <dd>{formatearFecha(caso.submitted_at)}</dd>
-          <dt>Revisión iniciada</dt>
-          <dd>{formatearFecha(caso.review_started_at)}</dd>
-          <dt>Decisión</dt>
-          <dd>{formatearFecha(caso.decision_at)}</dd>
-          <dt>Motivo de la decisión</dt>
+          <dt>{t("f_presentado")}</dt>
+          <dd>{formatearFecha(caso.submitted_at, idioma)}</dd>
+          <dt>{t("f_revision_iniciada")}</dt>
+          <dd>{formatearFecha(caso.review_started_at, idioma)}</dd>
+          <dt>{t("f_decision")}</dt>
+          <dd>{formatearFecha(caso.decision_at, idioma)}</dd>
+          <dt>{t("f_motivo_decision")}</dt>
           <dd>{caso.decision_reason ?? "—"}</dd>
-          <dt>Método de verificación</dt>
+          <dt>{t("f_metodo_verificacion")}</dt>
           <dd>{caso.verification_method ?? "—"}</dd>
         </dl>
       </Tarjeta>
       {opciones.length > 0 ? (
-        <Tarjeta titulo="Decisiones disponibles">
+        <Tarjeta titulo={t("decisiones_titulo")}>
           <div className="acciones">
             <div>
               <label>
-                Decisión
+                {t("f_decision")}
                 <select
                   value={opcionElegida?.decision ?? ""}
                   onChange={(e) => {
@@ -251,7 +243,7 @@ export function PantallaDetalleExpediente({
                     setOpcionElegida(elegida);
                   }}
                 >
-                  <option value="">— elegir decisión —</option>
+                  <option value="">{t("elegir_decision")}</option>
                   {opciones.map((opcion) => (
                     <option key={opcion.decision} value={opcion.decision}>
                       {opcion.decision} → {opcion.destino}
@@ -263,12 +255,12 @@ export function PantallaDetalleExpediente({
             {opcionElegida !== null && opcionElegida.requiereMetodo ? (
               <div>
                 <label>
-                  Método de comprobación
+                  {t("metodo_comprobacion")}
                   <select
                     value={metodo}
                     onChange={(e) => setMetodo(e.target.value as MetodoVerificacion)}
                   >
-                    <option value="">— elegir método —</option>
+                    <option value="">{t("elegir_metodo")}</option>
                     {metodosVerificacion().map((m) => (
                       <option key={m} value={m}>
                         {m}
@@ -281,12 +273,12 @@ export function PantallaDetalleExpediente({
             {opcionElegida !== null && opcionElegida.requiereMotivo ? (
               <div>
                 <label>
-                  Motivo (obligatorio)
+                  {t("motivo_label_expediente")}
                   <textarea
                     value={motivo}
                     maxLength={1000}
                     onChange={(e) => setMotivo(e.target.value)}
-                    placeholder="Justificación de la decisión"
+                    placeholder={t("motivo_placeholder_decision")}
                   />
                 </label>
               </div>
@@ -296,39 +288,35 @@ export function PantallaDetalleExpediente({
               disabled={ocupado || opcionElegida === null}
               onClick={() => void aplicarDecision()}
             >
-              Aplicar decisión
+              {t("aplicar_decision")}
             </button>
           </div>
-          <p className="nota">
-            Las decisiones pasan SIEMPRE por la función `decision-verificacion`: los pares, el
-            motivo fresco y el método los impone también el trigger SQL; los eventos del expediente
-            quedan con el actor real.
-          </p>
+          <p className="nota">{t("decisiones_nota")}</p>
         </Tarjeta>
       ) : (
-        <SinDatos texto="Este caso no admite más decisiones administrativas en su estado actual." />
+        <SinDatos texto={t("sin_decisiones")} />
       )}
-      <Tarjeta titulo="Documentos del expediente (bucket privado)">
+      <Tarjeta titulo={t("documentos_titulo")}>
         {documentos.length === 0 ? (
-          <SinDatos texto="El expediente no tiene documentos cargados." />
+          <SinDatos texto={t("sin_documentos")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Revisión</th>
-                <th>Notas</th>
-                <th>Cargado</th>
-                <th>Acciones</th>
+                <th>{t("th_tipo")}</th>
+                <th>{t("th_revision")}</th>
+                <th>{t("th_notas")}</th>
+                <th>{t("th_cargado")}</th>
+                <th>{t("th_acciones")}</th>
               </tr>
             </thead>
             <tbody>
               {documentos.map((documento) => (
                 <tr key={documento.id}>
-                  <td>{NOMBRES_DOCUMENTO[documento.document_type] ?? documento.document_type}</td>
+                  <td>{etiquetaDocumento(idioma, documento.document_type)}</td>
                   <td>{documento.review_status}</td>
                   <td>{documento.review_notes ?? "—"}</td>
-                  <td>{formatearFecha(documento.uploaded_at)}</td>
+                  <td>{formatearFecha(documento.uploaded_at, idioma)}</td>
                   <td>
                     <div className="acciones">
                       <button
@@ -336,25 +324,25 @@ export function PantallaDetalleExpediente({
                         disabled={ocupado}
                         onClick={() => void verDocumento(documento.id)}
                       >
-                        Ver (URL firmada)
+                        {t("ver_url_firmada")}
                       </button>
                       <button
                         className="secundario"
                         disabled={ocupado}
                         onClick={() => void revisarDoc(documento.id, "accepted")}
                       >
-                        Aceptar
+                        {t("aceptar")}
                       </button>
                       <button
                         className="peligro"
                         disabled={ocupado}
                         onClick={() => void revisarDoc(documento.id, "rejected")}
                       >
-                        Rechazar
+                        {t("rechazar")}
                       </button>
                       {urlFirmada !== null && urlFirmada.doc === documento.id ? (
                         <a href={urlFirmada.url} target="_blank" rel="noreferrer">
-                          abrir documento
+                          {t("abrir_documento")}
                         </a>
                       ) : null}
                     </div>
@@ -364,29 +352,25 @@ export function PantallaDetalleExpediente({
             </tbody>
           </table>
         )}
-        <p className="nota">
-          Las notas escritas arriba se aplican a la siguiente revisión de documento (aceptar o
-          rechazar). La emisión de cada URL firmada queda registrada en la auditoría; los enlaces
-          caducan en 5 minutos.
-        </p>
+        <p className="nota">{t("documentos_nota")}</p>
       </Tarjeta>
-      <Tarjeta titulo="Historial del expediente">
+      <Tarjeta titulo={t("historial_expediente_titulo")}>
         {eventos.length === 0 ? (
-          <SinDatos texto="Sin eventos registrados." />
+          <SinDatos texto={t("sin_eventos")} />
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Cuando</th>
-                <th>Evento</th>
-                <th>Transición</th>
-                <th>Actor</th>
+                <th>{t("th_cuando")}</th>
+                <th>{t("th_evento")}</th>
+                <th>{t("th_transicion")}</th>
+                <th>{t("th_actor")}</th>
               </tr>
             </thead>
             <tbody>
               {eventos.map((evento) => (
                 <tr key={evento.id}>
-                  <td>{formatearFecha(evento.occurred_at)}</td>
+                  <td>{formatearFecha(evento.occurred_at, idioma)}</td>
                   <td>{evento.event_type}</td>
                   <td>
                     {evento.from_status ?? "—"} → {evento.to_status ?? "—"}

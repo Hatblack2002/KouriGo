@@ -1,8 +1,11 @@
 /**
  * Componentes compartidos de la consola: piezas mínimas de trabajo diario
- * (README sección 14: «priorizar el trabajo diario, no la decoración»).
+ * (README sección 14: «priorizar el trabajo diario, no la decoración»). Las
+ * etiquetas de estado salen del diccionario de idiomas (README sección 9);
+ * los literales reales de la base de datos se mantienen como respaldo.
  */
 import type { ReactNode } from "react";
+import { etiquetaEstadoExpediente, etiquetaEstadoPedido, useIdioma } from "./idiomas";
 
 export function Tarjeta({
   titulo,
@@ -58,46 +61,16 @@ const CLASES_ESTADO_PEDIDO: Record<string, string> = {
   issue: "estado-malo",
 };
 
-const NOMBRES_ESTADO_PEDIDO: Record<string, string> = {
-  draft: "borrador",
-  pending: "pendiente",
-  offered: "ofrecido",
-  accepted: "aceptado",
-  at_pickup: "en recogida",
-  picked_up: "recogido",
-  in_transit: "en tránsito",
-  delivered: "entregado",
-  cancelled: "cancelado",
-  issue: "incidencia",
-};
-
-export function nombreEstadoPedido(estado: string): string {
-  return NOMBRES_ESTADO_PEDIDO[estado] ?? estado;
-}
-
 export function InsigniaEstado({ estado }: { readonly estado: string }) {
+  const { idioma } = useIdioma();
   const clase = CLASES_ESTADO_PEDIDO[estado] ?? "estado-neutro";
-  return <span className={`insignia ${clase}`}>{nombreEstadoPedido(estado)}</span>;
-}
-
-const NOMBRES_ESTADO_EXPEDIENTE: Record<string, string> = {
-  draft: "borrador",
-  submitted: "presentado",
-  under_review: "en revisión",
-  needs_information: "pide información",
-  verification_scheduled: "verificación programada",
-  approved: "aprobado",
-  rejected: "rechazado",
-  suspended: "suspendido",
-  expired: "expirado",
-  reverification_required: "reverificación requerida",
-};
-
-export function nombreEstadoExpediente(estado: string): string {
-  return NOMBRES_ESTADO_EXPEDIENTE[estado] ?? estado;
+  return (
+    <span className={`insignia ${clase}`}>{etiquetaEstadoPedido(idioma, estado)}</span>
+  );
 }
 
 export function InsigniaExpediente({ estado }: { readonly estado: string }) {
+  const { idioma } = useIdioma();
   const clase =
     estado === "approved"
       ? "estado-exito"
@@ -106,7 +79,9 @@ export function InsigniaExpediente({ estado }: { readonly estado: string }) {
         : estado === "draft" || estado === "expired"
           ? "estado-neutro"
           : "estado-activo";
-  return <span className={`insignia ${clase}`}>{nombreEstadoExpediente(estado)}</span>;
+  return (
+    <span className={`insignia ${clase}`}>{etiquetaEstadoExpediente(idioma, estado)}</span>
+  );
 }
 
 export function SinDatos({ texto }: { readonly texto: string }) {

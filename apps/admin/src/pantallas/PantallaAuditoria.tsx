@@ -2,7 +2,8 @@
  * Auditoría de operaciones sensibles (README secciones 12 y 14.10): últimas
  * entradas REALES de `audit_logs`, que solo el administrador puede leer por
  * RLS. Las acciones privilegiosas de la Etapa 3 y las correcciones de la
- * consola dejan aquí su constancia.
+ * consola dejan aquí su constancia. Etiquetas del diccionario de idiomas
+ * (README sección 9).
  */
 import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -13,9 +14,11 @@ import {
   type FiltroAccion,
 } from "../api/auditoria";
 import { Cargando, MensajeError, SinDatos } from "../componentes";
+import { useIdioma } from "../idiomas";
 import { formatearFecha } from "../formato";
 
 export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClient }) {
+  const { t, idioma } = useIdioma();
   const [filtro, setFiltro] = useState<FiltroAccion>("todas");
   const [filas, setFilas] = useState<FilaAuditoria[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +50,12 @@ export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClien
   return (
     <>
       <section className="tarjeta">
-        <h2>Auditoría de operaciones sensibles</h2>
+        <h2>{t("auditoria_titulo")}</h2>
         <div className="filtros">
           <label>
-            Acción
+            {t("filtro_accion")}
             <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-              <option value="todas">todas</option>
+              <option value="todas">{t("filtro_todas")}</option>
               {accionesConocidas().map((accion) => (
                 <option key={accion} value={accion}>
                   {accion}
@@ -60,35 +63,33 @@ export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClien
               ))}
             </select>
           </label>
-          <span className="nota">{filas.length} entradas visibles (últimas 150)</span>
+          <span className="nota">
+            {filas.length} {t("entradas_visibles")}
+          </span>
         </div>
-        <p className="nota">
-          `audit_logs` no tiene política de escritura para clientes: solo el service_role de las
-          Edge Functions registra entradas, y solo el rol administrador puede leerlas (RLS). Un no
-          administrador vería la tabla vacía aunque conociera esta pantalla.
-        </p>
+        <p className="nota">{t("auditoria_nota")}</p>
       </section>
       <MensajeError mensaje={error} />
       {cargando ? (
-        <Cargando texto="Leyendo la auditoría real…" />
+        <Cargando texto={t("leyendo_auditoria")} />
       ) : filas.length === 0 ? (
-        <SinDatos texto="No hay entradas de auditoría con ese filtro." />
+        <SinDatos texto={t("no_auditoria_filtro")} />
       ) : (
         <section className="tarjeta">
           <table>
             <thead>
               <tr>
-                <th>Cuando</th>
-                <th>Acción</th>
-                <th>Recurso</th>
-                <th>Identificador</th>
-                <th>Metadatos</th>
+                <th>{t("th_cuando")}</th>
+                <th>{t("th_accion")}</th>
+                <th>{t("th_recurso")}</th>
+                <th>{t("th_identificador")}</th>
+                <th>{t("th_metadatos")}</th>
               </tr>
             </thead>
             <tbody>
               {filas.map((fila) => (
                 <tr key={fila.id}>
-                  <td>{formatearFecha(fila.created_at)}</td>
+                  <td>{formatearFecha(fila.created_at, idioma)}</td>
                   <td>{fila.action}</td>
                   <td>
                     {fila.resource_type}

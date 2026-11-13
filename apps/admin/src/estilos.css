@@ -382,3 +382,19 @@ dl.ficha dd {
     margin-left: 0;
   }
 }
+
+/* Selector de idioma (README sección 9: kreyòl, français y español) */
+.selector-idioma {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #c9d1dc;
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.selector-centrado {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+}

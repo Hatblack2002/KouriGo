@@ -1,19 +1,15 @@
 /**
  * Lista de expedientes de verificación de repartidores (README sección 14.5).
  * Al pulsar una fila se abre el detalle con documentos y decisiones.
+ * Etiquetas del diccionario de idiomas (README sección 9).
  */
 import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ESTADOS_EXPEDIENTE, type EstadoExpediente } from "@kourigo/domain";
 import { listarCasos, type FilaCaso } from "../api/expediente";
 import { listarPerfiles, type FilaPerfil } from "../api/perfiles";
-import {
-  Cargando,
-  InsigniaExpediente,
-  MensajeError,
-  nombreEstadoExpediente,
-  SinDatos,
-} from "../componentes";
+import { Cargando, InsigniaExpediente, MensajeError, SinDatos } from "../componentes";
+import { etiquetaEstadoExpediente, useIdioma } from "../idiomas";
 import { formatearFecha } from "../formato";
 
 type FiltroCaso = "todos" | EstadoExpediente;
@@ -25,6 +21,7 @@ export function PantallaRepartidores({
   readonly cliente: SupabaseClient;
   readonly alAbrirCaso: (id: string) => void;
 }) {
+  const { t, idioma } = useIdioma();
   const [filtro, setFiltro] = useState<FiltroCaso>("todos");
   const [filas, setFilas] = useState<FilaCaso[]>([]);
   const [perfiles, setPerfiles] = useState<FilaPerfil[]>([]);
@@ -67,38 +64,40 @@ export function PantallaRepartidores({
   return (
     <>
       <section className="tarjeta">
-        <h2>Expedientes de verificación de repartidores</h2>
+        <h2>{t("expedientes_titulo")}</h2>
         <div className="filtros">
           <label>
-            Estado
+            {t("filtro_estado")}
             <select value={filtro} onChange={(e) => setFiltro(e.target.value as FiltroCaso)}>
-              <option value="todos">todos</option>
+              <option value="todos">{t("filtro_todos")}</option>
               {ESTADOS_EXPEDIENTE.map((estado) => (
                 <option key={estado} value={estado}>
-                  {nombreEstadoExpediente(estado)}
+                  {etiquetaEstadoExpediente(idioma, estado)}
                 </option>
               ))}
             </select>
           </label>
-          <span className="nota">{filas.length} expedientes visibles (últimos 100)</span>
+          <span className="nota">
+            {filas.length} {t("expedientes_visibles")}
+          </span>
         </div>
       </section>
       <MensajeError mensaje={error} />
       {cargando ? (
-        <Cargando texto="Leyendo expedientes reales…" />
+        <Cargando texto={t("leyendo_expedientes")} />
       ) : filas.length === 0 ? (
-        <SinDatos texto="No hay expedientes con ese filtro." />
+        <SinDatos texto={t("no_expedientes_filtro")} />
       ) : (
         <section className="tarjeta">
           <table>
             <thead>
               <tr>
-                <th>Repartidor</th>
-                <th>Estado</th>
-                <th>Presentado</th>
-                <th>Decisión</th>
-                <th>Método</th>
-                <th>Actualizado</th>
+                <th>{t("th_repartidor")}</th>
+                <th>{t("th_estado")}</th>
+                <th>{t("th_presentado")}</th>
+                <th>{t("th_decision")}</th>
+                <th>{t("th_metodo")}</th>
+                <th>{t("th_actualizado")}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,10 +107,10 @@ export function PantallaRepartidores({
                   <td>
                     <InsigniaExpediente estado={caso.status} />
                   </td>
-                  <td>{formatearFecha(caso.submitted_at)}</td>
-                  <td>{formatearFecha(caso.decision_at)}</td>
+                  <td>{formatearFecha(caso.submitted_at, idioma)}</td>
+                  <td>{formatearFecha(caso.decision_at, idioma)}</td>
                   <td>{caso.verification_method ?? "—"}</td>
-                  <td>{formatearFecha(caso.updated_at)}</td>
+                  <td>{formatearFecha(caso.updated_at, idioma)}</td>
                 </tr>
               ))}
             </tbody>

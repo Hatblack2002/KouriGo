@@ -39,6 +39,21 @@ npm run dev --workspace @kourigo/admin
 La clave anon es pública por diseño; el acceso a datos lo impone RLS. La
 clave service-role NUNCA entra en la consola.
 
+## Idiomas de la interfaz (README sección 9)
+
+Toda la interfaz sale del diccionario `src/idiomas.tsx` con las mismas claves
+en **kreyòl ayisyen** (idioma prioritario), **français** (segundo idioma) y
+**español** (idioma adicional admitido por la sección 9). La terminología de
+kreyòl/français coincide con la app móvil (`apps/mobile/src/i18n.ts`,
+ADR-0006). Un selector en la barra y en el login cambia el idioma; la
+elección se guarda en `localStorage` y el kreyòl es el idioma por defecto.
+Las fechas usan formato localizado (`fr-HT` para kreyòl/français, `es-ES`
+para español) y el código de moneda SIEMPRE viene de la fila del pedido.
+Los literales reales de la base de datos (estados, tipos de documento) se
+mantienen como respaldo si aún no tienen etiqueta. La prueba
+`tests/idiomas.test.ts` garantiza en CI la paridad de claves entre los tres
+idiomas y la terminología compartida con la app móvil.
+
 ## Verificación en CI
 
 Workflow `Consola administrativa (web)` (`.github/workflows/consola-admin.yml`):

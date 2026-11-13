@@ -4,7 +4,8 @@
  * backend — el permiso administrativo se comprueba contra `user_roles` bajo
  * RLS al abrir la sesión y las operaciones privilegiadas pasan por las
  * Edge Functions del runtime (ADR-0005). Un no administrador queda
- * bloqueado aunque conozca las URLs (README criterio de aceptación).
+ * bloqueado aunque conozca las URLs (README criterio de aceptación). Todos
+ * los textos visibles salen del diccionario de idiomas (README sección 9).
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SesionActiva } from "./auth";
@@ -17,6 +18,7 @@ import {
 } from "./auth";
 import { MensajeError, Tarjeta } from "./componentes";
 import { ConfiguracionFaltanteError, leerConfiguracionPublica } from "./configuracion";
+import { SelectorIdioma, useIdioma } from "./idiomas";
 import { PantallaAuditoria } from "./pantallas/PantallaAuditoria";
 import { PantallaDetalleExpediente } from "./pantallas/PantallaDetalleExpediente";
 import { PantallaDetallePedido } from "./pantallas/PantallaDetallePedido";
@@ -36,8 +38,11 @@ type Vista =
 type EstadoAcceso = "comprobando" | "sin-sesion" | "administrador" | "sin-permisos";
 
 export function App() {
+  const { t } = useIdioma();
   // La configuración faltante es un error de despliegue, no de sesión:
-  // se muestra de forma explícita en lugar de una pantalla en blanco.
+  // se muestra de forma explícita en lugar de una pantalla en blanco. El
+  // mensaje técnico se conserva (lo exige la prueba de configuración);
+  // la explicación traducida se añade al renderizar.
   const configuracion = useMemo(() => {
     try {
       return { tipo: "ok" as const, valor: leerConfiguracionPublica() };
@@ -45,9 +50,7 @@ export function App() {
       return {
         tipo: "error" as const,
         mensaje:
-          error instanceof ConfiguracionFaltanteError
-            ? error.message
-            : "Error desconocido al leer la configuración pública.",
+          error instanceof ConfiguracionFaltanteError ? error.message : "",
       };
     }
   }, []);
@@ -70,7 +73,7 @@ export function App() {
       }
       const rol = await leerRolAdministrador(cliente);
       if (rol.tipo === "error") {
-        setErrorAcceso(rol.mensaje);
+        setErrorAcceso(rol.clave !== null ? t(rol.clave) : rol.mensaje);
         setAcceso("sin-permisos");
         return;
       }
@@ -80,7 +83,7 @@ export function App() {
         setNombre(await leerNombrePropio(cliente));
       }
     },
-    [cliente],
+    [cliente, t],
   );
 
   // Restaurar la sesión persistida del navegador al abrir la consola.
@@ -97,7 +100,7 @@ export function App() {
       if (restaurada.tipo === "ok") {
         await comprobarRol(restaurada.sesion);
       } else if (restaurada.tipo === "error") {
-        setErrorAcceso(restaurada.mensaje);
+        setErrorAcceso(restaurada.clave !== null ? t(restaurada.clave) : restaurada.mensaje);
         setAcceso("sin-sesion");
       } else {
         setAcceso("sin-sesion");
@@ -106,7 +109,7 @@ export function App() {
     return () => {
       montado = false;
     };
-  }, [cliente, comprobarRol]);
+  }, [cliente, comprobarRol, t]);
 
   async function alIniciar(sesionNueva: SesionActiva) {
     setErrorAcceso(null);
@@ -126,18 +129,19 @@ export function App() {
   if (configuracion.tipo === "error" || cliente === null) {
     return (
       <div className="pantalla-centrada">
-        <Tarjeta titulo="Configuración faltante">
+        <Tarjeta titulo={t("config_titulo")}>
           <MensajeError
             mensaje={
-              configuracion.tipo === "error"
+              configuracion.tipo === "error" && configuracion.mensaje.length > 0
                 ? configuracion.mensaje
-                : "No se pudo crear el cliente del backend."
+                : t("config_cliente_error")
             }
           />
-          <p className="nota">
-            La consola se compila con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.
-          </p>
+          <p className="nota">{t("config_nota")}</p>
         </Tarjeta>
+        <div className="selector-centrado">
+          <SelectorIdioma />
+        </div>
       </div>
     );
   }
@@ -145,7 +149,7 @@ export function App() {
   if (acceso === "comprobando") {
     return (
       <div className="pantalla-centrada">
-        <p className="cargando">Restaurando la sesión real…</p>
+        <p className="cargando">{t("acceso_comprobando")}</p>
       </div>
     );
   }
@@ -157,22 +161,18 @@ export function App() {
   if (acceso === "sin-permisos" || sesion === null) {
     return (
       <div className="pantalla-centrada">
-        <Tarjeta titulo="Acceso denegado">
+        <Tarjeta titulo={t("acceso_denegado")}>
           <MensajeError
-            mensaje={
-              errorAcceso ??
-              "La sesión es real pero no tiene rol administrativo activo en user_roles " +
-                "(comprobado contra el backend bajo RLS)."
-            }
+            mensaje={errorAcceso ?? t("acceso_denegado_detalle")}
           />
-          <p className="nota">
-            La consola bloquea a usuarios sin permisos aunque conozcan las URLs; los datos quedan
-            además protegidos por RLS en el servidor.
-          </p>
+          <p className="nota">{t("acceso_denegado_nota")}</p>
           <button className="accion" onClick={() => void salir()}>
-            Cerrar sesión
+            {t("cerrar_sesion")}
           </button>
         </Tarjeta>
+        <div className="selector-centrado">
+          <SelectorIdioma />
+        </div>
       </div>
     );
   }
@@ -180,19 +180,19 @@ export function App() {
   return (
     <>
       <header className="barra">
-        <span className="marca">KouriGo · Consola administrativa</span>
+        <span className="marca">{t("marca")}</span>
         <nav>
           <button
             className={vista.pantalla === "resumen" ? "activo" : ""}
             onClick={() => setVista({ pantalla: "resumen" })}
           >
-            Resumen
+            {t("nav_resumen")}
           </button>
           <button
             className={vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""}
             onClick={() => setVista({ pantalla: "pedidos" })}
           >
-            Pedidos
+            {t("nav_pedidos")}
           </button>
           <button
             className={
@@ -200,18 +200,19 @@ export function App() {
             }
             onClick={() => setVista({ pantalla: "repartidores" })}
           >
-            Repartidores
+            {t("nav_repartidores")}
           </button>
           <button
             className={vista.pantalla === "auditoria" ? "activo" : ""}
             onClick={() => setVista({ pantalla: "auditoria" })}
           >
-            Auditoría
+            {t("nav_auditoria")}
           </button>
         </nav>
         <span className="usuario">
+          <SelectorIdioma />
           <span>{nombre ?? sesion.correo}</span>
-          <button onClick={() => void salir()}>Cerrar sesión</button>
+          <button onClick={() => void salir()}>{t("cerrar_sesion")}</button>
         </span>
       </header>
       <main className="contenido">
