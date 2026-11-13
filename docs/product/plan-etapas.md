@@ -5,7 +5,7 @@
 
 | Etapa | Contenido | Verificación | Estado |
 |---|---|---|---|
-| 1 | Base técnica: monorepo TypeScript, `packages/domain` (estados, transiciones por rol, comisión, validaciones), migración inicial con RLS y triggers, pipeline CI completo (formato, lint, tipos, pruebas unitarias, PostgreSQL+PostGIS, build, secretos) | Workflow `CI` verde en GitHub Actions | En ejecución |
+| 1 | Base técnica: monorepo TypeScript, `packages/domain` (estados, transiciones por rol, comisión, validaciones), migración inicial con RLS y triggers, pipeline CI completo (formato, lint, tipos, pruebas unitarias, PostgreSQL+PostGIS, build, secretos) | Workflow `CI` verde en GitHub Actions (run 43347150143, commit 70cc89b: los cuatro jobs en verde) | **Completada** |
 | 1.5 | Conexión del proyecto Supabase real: aplicar migraciones, verificar RLS contra el proyecto, revisar variables de entorno | Job de CI aplicando migraciones con `DATABASE_URL` (secreto) | Pendiente de credencial de base de datos |
 | 2 | Verificación de repartidores: tablas de expediente, buckets privados de Storage y políticas, flujo de revisión | Pruebas de acceso permitido/denegado en CI | Pendiente |
 | 3 | Edge Functions: operaciones privilegiadas (despacho, aprobaciones, transiciones, auditoría) | Pruebas de integración en CI | Pendiente |
