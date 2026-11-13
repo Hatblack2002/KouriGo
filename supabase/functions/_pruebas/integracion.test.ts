@@ -35,20 +35,46 @@ function entornoPrueba(): Entorno {
   };
 }
 
+/**
+ * Reintenta una operación de red ante fallos transitorios (DNS, conexión).
+ * Solo la llamada: las respuestas no exitosas se evalúan fuera del reintento.
+ */
+async function conReintentos<T>(
+  operacion: () => Promise<T>,
+  descripcion: string,
+): Promise<T> {
+  let ultimoError: unknown = null;
+  for (let intento = 1; intento <= 3; intento++) {
+    try {
+      return await operacion();
+    } catch (error) {
+      ultimoError = error;
+      if (intento < 3) {
+        await new Promise((resolver) => setTimeout(resolver, 2000 * intento));
+      }
+    }
+  }
+  throw new Error(`${descripcion} falló tras 3 intentos: ${String(ultimoError)}`);
+}
+
 async function crearUsuario(
   ent: Entorno,
   email: string,
   password: string,
 ): Promise<string> {
-  const respuesta = await fetch(`${ent.url}/auth/v1/admin/users`, {
-    method: "POST",
-    headers: {
-      "apikey": ent.serviceKey,
-      "Authorization": `Bearer ${ent.serviceKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password, email_confirm: true }),
-  });
+  const respuesta = await conReintentos(
+    () =>
+      fetch(`${ent.url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "apikey": ent.serviceKey,
+          "Authorization": `Bearer ${ent.serviceKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, email_confirm: true }),
+      }),
+    `crear usuario ${email}`,
+  );
   const texto = await respuesta.text();
   afirmar(respuesta.ok, `crear usuario ${email} -> ${respuesta.status}: ${texto}`);
   const datos = JSON.parse(texto) as { id?: string };
@@ -61,14 +87,18 @@ async function iniciarSesion(
   email: string,
   password: string,
 ): Promise<string> {
-  const respuesta = await fetch(`${ent.url}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      "apikey": ent.anonKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  const respuesta = await conReintentos(
+    () =>
+      fetch(`${ent.url}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers: {
+          "apikey": ent.anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      }),
+    `iniciar sesión ${email}`,
+  );
   const texto = await respuesta.text();
   afirmar(respuesta.ok, `iniciar sesión ${email} -> ${respuesta.status}: ${texto}`);
   const datos = JSON.parse(texto) as { access_token?: string };
@@ -82,13 +112,17 @@ async function eliminarRuta(
   ruta: string,
 ): Promise<string | null> {
   try {
-    const respuesta = await fetch(`${ent.url}${ruta}`, {
-      method: metodo,
-      headers: {
-        "apikey": ent.serviceKey,
-        "Authorization": `Bearer ${ent.serviceKey}`,
-      },
-    });
+    const respuesta = await conReintentos(
+      () =>
+        fetch(`${ent.url}${ruta}`, {
+          method: metodo,
+          headers: {
+            "apikey": ent.serviceKey,
+            "Authorization": `Bearer ${ent.serviceKey}`,
+          },
+        }),
+      `limpieza ${metodo} ${ruta}`,
+    );
     if (!respuesta.ok) {
       return `${metodo} ${ruta} -> ${respuesta.status}: ${await respuesta.text()}`;
     }
@@ -251,17 +285,21 @@ Deno.test({
       afirmar(Array.isArray(casos) && casos.length === 1, "expediente creado");
       const casoId = casos[0].id;
       const rutaObjeto = `${idRepartidor}/documento-${uniq}.txt`;
-      const subida = await fetch(
-        `${ent.url}/storage/v1/object/courier-identity-private/${rutaObjeto}`,
-        {
-          method: "POST",
-          headers: {
-            "apikey": ent.serviceKey,
-            "Authorization": `Bearer ${ent.serviceKey}`,
-            "Content-Type": "text/plain",
-          },
-          body: "evidencia de prueba de integracion",
-        },
+      const subida = await conReintentos(
+        () =>
+          fetch(
+            `${ent.url}/storage/v1/object/courier-identity-private/${rutaObjeto}`,
+            {
+              method: "POST",
+              headers: {
+                "apikey": ent.serviceKey,
+                "Authorization": `Bearer ${ent.serviceKey}`,
+                "Content-Type": "text/plain",
+              },
+              body: "evidencia de prueba de integracion",
+            },
+          ),
+        "subida al bucket privado",
       );
       afirmar(subida.ok, `subida al bucket privado -> ${subida.status}: ${await subida.text()}`);
       const documentos = await rest<{ id: string }[]>(
