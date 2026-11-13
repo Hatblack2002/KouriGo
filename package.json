@@ -19,7 +19,9 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "test:unit": "npm run test --workspaces --if-present",
-    "test:db": "bash database/tests/run.sh"
+    "test:db": "bash database/tests/run.sh",
+    "db:supabase:migrate": "bash scripts/aplicar_migraciones.sh",
+    "db:supabase:verify": "bash scripts/verificar_supabase.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

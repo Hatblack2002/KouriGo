@@ -1,0 +1,37 @@
+# KouriGo — Etapa 1.5: migraciones y verificación contra el proyecto real de
+# Supabase. Se dispara manualmente (workflow_dispatch) mientras el secreto
+# DATABASE_URL no esté verificado; cuando lo esté, se añade el disparo por
+# push en main. La conexión se hace con el pooler IPv4 de Supabase (los
+# runners de GitHub Actions no tienen IPv6 para la conexión directa).
+# Ver docs/decisions/ADR-0003-migraciones-supabase.md.
+
+name: Supabase (proyecto real)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-real
+  cancel-in-progress: false
+
+jobs:
+  migraciones-y-verificacion:
+    name: Aplicar migraciones y verificar esquema/RLS
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar cliente PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Aplicar migraciones pendientes
+        run: bash scripts/aplicar_migraciones.sh
+
+      - name: Verificar esquema, RLS y transiciones contra el proyecto real
+        run: bash scripts/verificar_supabase.sh
