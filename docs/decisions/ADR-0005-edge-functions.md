@@ -39,3 +39,9 @@ La Etapa 3 exige operaciones privilegiadas de servidor: despacho de pedidos, apr
 - **Despacho en dos llamadas REST desde la función (insertar asignación y luego actualizar el pedido):** rechazada; una falla parcial dejaría un pedido `offered` sin asignación o una asignación huérfana. El RPC SECURITY DEFINER hace todo atómico.
 - **Dejar el RPC ejecutable por authenticated y que la función solo valide payload:** rechazada; el despacho sería invocable por PostgREST sin pasar por la función, debilitando el punto único de auditoría.
 - **Usar supabase-js u otras dependencias en las funciones:** rechazada por ahora; con `fetch` y tipos locales la verificación de tipos y las pruebas se resuelven sin red y sin riesgo de versiones.
+
+## Notas operativas de la primera ejecución (2026-11-13)
+
+1. **El secreto `SUPABASE_URL` tenía el ref transpuesto** (`ouowxtptnqptsajqgjud` en lugar de `ouowxtpntqptsajqgjud`): hostname inexistente → NXDOMAIN en los runners, DoH sin respuesta y 400 del edge de Cloudflare al fijar una IP. El ref correcto se tomó del claim `ref` del JWT del proyecto y el secreto se repuso; el pooler IPv4 de ADR-0003 nunca se vio afectado porque su hostname no depende del ref.
+2. **Regla del header `apikey`:** PostgREST y Storage exigen SIEMPRE una clave de proyecto (anon o service_role); el JWT del llamador va solo en `Authorization: Bearer`. Usar el JWT como apikey produce "Invalid API key" — corregido en `_shared/rest.ts` y detectado por la prueba de integración real.
+3. **Resolución DNS en runners:** el paso del workflow comprueba el host con `getent`; solo si no resuelve prueba cuatro resolutores DoH y, como último recurso, fija una IP anycast conocida de Cloudflare en `/etc/hosts` EXIGIENDO un 200 real de `/auth/v1/health` (sin verdes falsos). Con el hostname correcto, los runners resuelven de forma nativa.
