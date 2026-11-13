@@ -41,6 +41,12 @@ AS $$
          )::uuid
 $$;
 
+-- Superficie de permisos igual a la del proyecto real de Supabase: los roles
+-- HTTP pueden usar el esquema auth y ejecutar sus funciones (las pruebas
+-- llaman auth.uid() directamente, por ejemplo para las rutas de Storage).
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO anon, authenticated, service_role;
+
 -- Ayudante de pruebas: falla con excepción cuando una condición esperada no
 -- se cumple. Se ejecuta con los privilegios del actor de prueba (SECURITY
 -- INVOKER), de modo que las consultas dentro de la condición sufren las
