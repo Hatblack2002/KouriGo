@@ -2,76 +2,59 @@
  * Pantalla «Mis pedidos» (README sección 2.1): lista real de pedidos del
  * cliente (PostgREST bajo RLS), con recarga manual (RefreshControl) y
  * estados de carga y error visibles. Los pedidos de otros clientes no son
- * visibles: el backend no los devuelve.
+ * visibles: el backend no los devuelve. Estilo según la maqueta aprobada:
+ * marca arriba, botón verde grande para el pedido nuevo y tarjetas blancas
+ * con chip de estado coloreado. Sin catálogo ni buscador: esas funciones
+ * todavía no existen y no se simulan.
  */
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Boton, ChipEstado, MensajeError, Titulo, COLORES } from "./components";
+import { BarraIdiomas, Boton, ChipEstado, Marca, MensajeError, COLORES } from "./components";
 import { formatearDinero, formatearFecha } from "./formato";
-import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./i18n";
+import { texto, type Idioma } from "./i18n";
 import { listarPedidos, type FilaPedido } from "./pedidos";
 
 const estilos = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: COLORES.blanco,
+    backgroundColor: COLORES.grisFondo,
   },
   barra: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
+    backgroundColor: COLORES.blanco,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORES.borde,
   },
+  filaMarca: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   titulo: {
-    flex: 1,
-  },
-  idiomas: {
-    flexDirection: "row",
-  },
-  botonIdioma: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginRight: 6,
-    borderWidth: 1,
-    borderColor: COLORES.borde,
-    backgroundColor: COLORES.grisFondo,
-  },
-  botonIdiomaActivo: {
-    backgroundColor: COLORES.grafito,
-  },
-  textoIdioma: {
-    fontSize: 12,
+    fontSize: 20,
+    fontWeight: "800",
     color: COLORES.grafito,
-    fontWeight: "700",
+    marginTop: 8,
   },
-  textoIdiomaActivo: {
-    color: COLORES.blanco,
-  },
-  acciones: {
-    flexDirection: "row",
+  accion: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 16,
   },
-  accionDerecha: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  accionIzquierda: {
-    flex: 1,
-    marginRight: 8,
+  lista: {
+    paddingBottom: 32,
   },
   tarjeta: {
     marginHorizontal: 16,
     marginTop: 12,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORES.borde,
-    backgroundColor: COLORES.grisFondo,
+    backgroundColor: COLORES.blanco,
   },
   filaTarjeta: {
     flexDirection: "row",
@@ -84,10 +67,30 @@ const estilos = StyleSheet.create({
     color: COLORES.grafito,
     fontSize: 15,
     flex: 1,
+    marginRight: 8,
   },
   detalle: {
     color: COLORES.grisTexto,
     fontSize: 13,
+    marginTop: 2,
+  },
+  filaTarifa: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORES.borde,
+  },
+  tarifaEtiqueta: {
+    color: COLORES.grisTexto,
+    fontSize: 12,
+  },
+  tarifaValor: {
+    color: COLORES.verdeOscuro,
+    fontWeight: "800",
+    fontSize: 14,
   },
   vacio: {
     textAlign: "center",
@@ -98,6 +101,15 @@ const estilos = StyleSheet.create({
   error: {
     marginHorizontal: 16,
     marginTop: 16,
+  },
+  pie: {
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  enlaceSalir: {
+    color: COLORES.grisTexto,
+    fontWeight: "700",
+    fontSize: 13,
   },
 });
 
@@ -148,42 +160,20 @@ export function PantallaListaPedidos({
   return (
     <View style={estilos.contenedor}>
       <View style={estilos.barra}>
-        <View style={estilos.titulo}>
-          <Titulo>{texto(idioma, "mis_pedidos")}</Titulo>
+        <View style={estilos.filaMarca}>
+          <Marca idioma={idioma} />
+          <BarraIdiomas idioma={idioma} alCambiar={alCambiarIdioma} />
         </View>
-        <View style={estilos.idiomas}>
-          {IDIOMAS.map((opcion) => (
-            <Pressable
-              key={opcion}
-              onPress={() => alCambiarIdioma(opcion)}
-              style={[estilos.botonIdioma, opcion === idioma ? estilos.botonIdiomaActivo : null]}
-            >
-              <Text
-                style={[estilos.textoIdioma, opcion === idioma ? estilos.textoIdiomaActivo : null]}
-              >
-                {ETIQUETA_IDIOMA[opcion]}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <Text style={estilos.titulo}>{texto(idioma, "mis_pedidos")}</Text>
       </View>
-      <View style={estilos.acciones}>
-        <View style={estilos.accionIzquierda}>
-          <Boton textoBoton={texto(idioma, "nuevo_pedido")} alPulsar={alNuevoPedido} />
-        </View>
-        <View style={estilos.accionDerecha}>
-          <Boton
-            textoBoton={texto(idioma, "cerrar_sesion")}
-            alPulsar={alCerrarSesion}
-            secundario={true}
-          />
-        </View>
+      <View style={estilos.accion}>
+        <Boton textoBoton={texto(idioma, "nuevo_pedido")} alPulsar={alNuevoPedido} />
       </View>
       {error !== null ? <MensajeError mensaje={error} /> : null}
       <FlatList
         data={pedidos}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={estilos.lista}
         refreshControl={
           <RefreshControl
             refreshing={cargando}
@@ -197,6 +187,11 @@ export function PantallaListaPedidos({
             <Text style={estilos.vacio}>{texto(idioma, "sin_pedidos")}</Text>
           ) : undefined
         }
+        ListFooterComponent={
+          <Pressable onPress={alCerrarSesion} style={estilos.pie}>
+            <Text style={estilos.enlaceSalir}>{texto(idioma, "cerrar_sesion")}</Text>
+          </Pressable>
+        }
         renderItem={({ item }) => (
           <Pressable onPress={() => alAbrirDetalle(item.id)} style={estilos.tarjeta}>
             <View style={estilos.filaTarjeta}>
@@ -206,16 +201,18 @@ export function PantallaListaPedidos({
             <Text style={estilos.detalle}>
               {texto(idioma, "fecha")}: {formatearFecha(item.created_at, idioma)}
             </Text>
-            <Text style={estilos.detalle}>
+            <Text style={estilos.detalle} numberOfLines={1}>
               {texto(idioma, "recogida")}: {item.pickup_address_text}
             </Text>
-            <Text style={estilos.detalle}>
+            <Text style={estilos.detalle} numberOfLines={1}>
               {texto(idioma, "destino")}: {item.dropoff_address_text}
             </Text>
-            <Text style={estilos.detalle}>
-              {texto(idioma, "tarifa_servicio")}:{" "}
-              {formatearDinero(item.service_fee_amount, item.currency)}
-            </Text>
+            <View style={estilos.filaTarifa}>
+              <Text style={estilos.tarifaEtiqueta}>{texto(idioma, "tarifa_servicio")}</Text>
+              <Text style={estilos.tarifaValor}>
+                {formatearDinero(item.service_fee_amount, item.currency)}
+              </Text>
+            </View>
           </Pressable>
         )}
       />

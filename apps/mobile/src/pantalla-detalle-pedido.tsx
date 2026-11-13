@@ -1,9 +1,11 @@
 /**
  * Detalle de pedido (README sección 2.1: consultar estado, detalles e
- * historial). Muestra los datos reales, los artículos, la línea de
- * «évènman» (order_events escrita por el trigger SQL) y las acciones que el
- * CLIENTE puede hacer según la matriz compartida de @kourigo/domain: las
- * transiciones se aplican con la Edge Function real `transicion-pedido`.
+ * historial). Muestra los datos reales, los artículos y la línea de tiempo
+ * REAL de «order_events» (escrita por el trigger SQL) con el estilo de la
+ * maqueta de seguimiento aprobada: puntos y línea vertical. Sin mapa, sin
+ * repartidor ni horas estimadas: esas funciones no existen todavía y no se
+ * simulan. Las acciones salen de la matriz compartida de @kourigo/domain y
+ * se aplican con la Edge Function real `transicion-pedido`.
  */
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -20,7 +22,7 @@ import {
   COLORES,
 } from "./components";
 import { formatearDinero, formatearFecha } from "./formato";
-import { texto, type Idioma } from "./i18n";
+import { etiquetaEstado, texto, type Idioma } from "./i18n";
 import {
   obtenerEventos,
   obtenerItems,
@@ -36,19 +38,17 @@ import type { ConfiguracionPublica } from "./configuracion";
 const estilos = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: COLORES.blanco,
+    backgroundColor: COLORES.grisFondo,
   },
   contenido: {
     padding: 16,
-    paddingBottom: 32,
-  },
-  barraVolver: {
-    marginBottom: 8,
+    paddingBottom: 40,
   },
   botonVolver: {
-    paddingHorizontal: 4,
-    paddingVertical: 6,
     alignSelf: "flex-start",
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginBottom: 4,
   },
   textoVolver: {
     color: COLORES.verde,
@@ -60,16 +60,26 @@ const estilos = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 8,
+    marginBottom: 4,
+  },
+  tarjeta: {
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 12,
+    backgroundColor: COLORES.blanco,
   },
   dato: {
     color: COLORES.grafito,
     fontSize: 14,
-    marginTop: 6,
+    marginTop: 2,
   },
   etiquetaDato: {
     color: COLORES.grisTexto,
     fontSize: 12,
-    marginTop: 8,
+    marginTop: 10,
+    fontWeight: "700",
   },
   itemFila: {
     flexDirection: "row",
@@ -82,21 +92,47 @@ const estilos = StyleSheet.create({
     color: COLORES.grafito,
     fontSize: 14,
     flex: 1,
+    marginRight: 8,
   },
   itemCantidad: {
     color: COLORES.grafito,
     fontSize: 14,
     fontWeight: "700",
-    marginRight: 8,
   },
-  evento: {
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORES.borde,
+  eventoFila: {
+    flexDirection: "row",
   },
-  eventoTexto: {
+  eventoEje: {
+    width: 16,
+    alignItems: "center",
+    alignSelf: "stretch",
+  },
+  punto: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORES.verde,
+    marginTop: 4,
+  },
+  linea: {
+    width: 2,
+    flex: 1,
+    backgroundColor: COLORES.borde,
+    marginVertical: 2,
+  },
+  eventoCuerpo: {
+    flex: 1,
+    paddingBottom: 16,
+  },
+  eventoTitulo: {
     color: COLORES.grafito,
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  eventoTipo: {
+    color: COLORES.grisTexto,
+    fontSize: 12,
+    marginTop: 2,
   },
   eventoFecha: {
     color: COLORES.grisTexto,
@@ -197,64 +233,77 @@ export function PantallaDetallePedido({
         />
       }
     >
-      <View style={estilos.barraVolver}>
-        <Pressable onPress={alVolver} style={estilos.botonVolver}>
-          <Text style={estilos.textoVolver}>← {texto(idioma, "volver")}</Text>
-        </Pressable>
-      </View>
+      <Pressable onPress={alVolver} style={estilos.botonVolver}>
+        <Text style={estilos.textoVolver}>← {texto(idioma, "volver")}</Text>
+      </Pressable>
       {error !== null ? <MensajeError mensaje={error} /> : null}
       {error === null && pedido === null && cargando === false ? (
         <Aviso mensaje={texto(idioma, "sin_pedidos")} />
       ) : null}
       {pedido !== null ? (
         <>
-          <Titulo>{texto(idioma, "detalle_pedido")}</Titulo>
           <View style={estilos.filaEstado}>
-            <Text style={estilos.dato}>{nombreTipo(pedido.order_type)}</Text>
+            <Titulo>{texto(idioma, "detalle_pedido")}</Titulo>
             <ChipEstado idioma={idioma} estado={pedido.status} />
           </View>
-          <Text style={estilos.etiquetaDato}>{texto(idioma, "recogida")}</Text>
-          <Text style={estilos.dato}>{pedido.pickup_address_text}</Text>
-          <Text style={estilos.etiquetaDato}>{texto(idioma, "destino")}</Text>
-          <Text style={estilos.dato}>{pedido.dropoff_address_text}</Text>
-          {pedido.store_address_text !== null ? (
-            <>
-              <Text style={estilos.etiquetaDato}>{texto(idioma, "comercio")}</Text>
-              <Text style={estilos.dato}>{pedido.store_address_text}</Text>
-            </>
-          ) : null}
-          {pedido.notes !== null ? (
-            <>
-              <Text style={estilos.etiquetaDato}>{texto(idioma, "notas")}</Text>
-              <Text style={estilos.dato}>{pedido.notes}</Text>
-            </>
-          ) : null}
-          <Text style={estilos.etiquetaDato}>{texto(idioma, "fecha")}</Text>
-          <Text style={estilos.dato}>{formatearFecha(pedido.created_at, idioma)}</Text>
-          <Text style={estilos.etiquetaDato}>{texto(idioma, "tarifa_servicio")}</Text>
-          <Text style={estilos.dato}>
-            {formatearDinero(pedido.service_fee_amount, pedido.currency)}
-          </Text>
-          <TituloSeccion>{texto(idioma, "articulos")}</TituloSeccion>
-          {items.map((item) => (
-            <View key={item.id} style={estilos.itemFila}>
-              <Text style={estilos.itemTexto}>{item.description}</Text>
-              <Text style={estilos.itemCantidad}>{`x${item.quantity}`}</Text>
-            </View>
-          ))}
-          <TituloSeccion>{texto(idioma, "eventos")}</TituloSeccion>
-          {eventos.length === 0 ? (
-            <Aviso mensaje={texto(idioma, "sin_eventos")} />
-          ) : (
-            eventos.map((evento) => (
-              <View key={evento.id} style={estilos.evento}>
-                <Text style={estilos.eventoTexto}>
-                  {`${evento.from_status ?? "—"} -> ${evento.to_status ?? "—"} (${evento.event_type})`}
-                </Text>
-                <Text style={estilos.eventoFecha}>{formatearFecha(evento.created_at, idioma)}</Text>
+          <Text style={estilos.dato}>{nombreTipo(pedido.order_type)}</Text>
+          <View style={estilos.tarjeta}>
+            <Text style={estilos.etiquetaDato}>{texto(idioma, "recogida")}</Text>
+            <Text style={estilos.dato}>{pedido.pickup_address_text}</Text>
+            <Text style={estilos.etiquetaDato}>{texto(idioma, "destino")}</Text>
+            <Text style={estilos.dato}>{pedido.dropoff_address_text}</Text>
+            {pedido.store_address_text !== null ? (
+              <>
+                <Text style={estilos.etiquetaDato}>{texto(idioma, "comercio")}</Text>
+                <Text style={estilos.dato}>{pedido.store_address_text}</Text>
+              </>
+            ) : null}
+            {pedido.notes !== null ? (
+              <>
+                <Text style={estilos.etiquetaDato}>{texto(idioma, "notas")}</Text>
+                <Text style={estilos.dato}>{pedido.notes}</Text>
+              </>
+            ) : null}
+            <Text style={estilos.etiquetaDato}>{texto(idioma, "fecha")}</Text>
+            <Text style={estilos.dato}>{formatearFecha(pedido.created_at, idioma)}</Text>
+            <Text style={estilos.etiquetaDato}>{texto(idioma, "tarifa_servicio")}</Text>
+            <Text style={[estilos.dato, { fontWeight: "800", color: COLORES.verdeOscuro }]}>
+              {formatearDinero(pedido.service_fee_amount, pedido.currency)}
+            </Text>
+          </View>
+          <View style={estilos.tarjeta}>
+            <TituloSeccion>{texto(idioma, "articulos")}</TituloSeccion>
+            {items.map((item) => (
+              <View key={item.id} style={estilos.itemFila}>
+                <Text style={estilos.itemTexto}>{item.description}</Text>
+                <Text style={estilos.itemCantidad}>{`x${item.quantity}`}</Text>
               </View>
-            ))
-          )}
+            ))}
+          </View>
+          <View style={estilos.tarjeta}>
+            <TituloSeccion>{texto(idioma, "seguimiento")}</TituloSeccion>
+            {eventos.length === 0 ? (
+              <Aviso mensaje={texto(idioma, "sin_eventos")} />
+            ) : (
+              eventos.map((evento, indice) => (
+                <View key={evento.id} style={estilos.eventoFila}>
+                  <View style={estilos.eventoEje}>
+                    <View style={estilos.punto} />
+                    {indice < eventos.length - 1 ? <View style={estilos.linea} /> : null}
+                  </View>
+                  <View style={estilos.eventoCuerpo}>
+                    <Text style={estilos.eventoTitulo}>
+                      {etiquetaEstado(idioma, evento.to_status ?? evento.from_status ?? "")}
+                    </Text>
+                    <Text style={estilos.eventoTipo}>{evento.event_type}</Text>
+                    <Text style={estilos.eventoFecha}>
+                      {formatearFecha(evento.created_at, idioma)}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
           {estadosCliente.length > 0 ? (
             <View style={estilos.acciones}>
               {estadosCliente.map((destino) => (
@@ -269,7 +318,7 @@ export function PantallaDetallePedido({
                       void transicionar(destino);
                     }}
                     deshabilitado={enAccion}
-                    secundario={destino === "cancelled"}
+                    peligroso={destino === "cancelled"}
                   />
                 </View>
               ))}

@@ -10,10 +10,14 @@ Aplicación cliente en **React Native + Expo + TypeScript** dentro del monorepo 
 - **Confirmar / cancelar:** transiciones del cliente (`draft->pending`, cancelaciones) aplicadas **siempre** por la Edge Function real `transicion-pedido`; los botones disponibles salen de la matriz compartida `@kourigo/domain` (la misma que impone el trigger SQL).
 - **Lista y detalle:** pedidos propios (RLS: un cliente no ve pedidos ajenos), artículos, tarifa y línea de eventos (`order_events`).
 - **Interfaz bilingüe kreyòl/français** (README sección 9) con estados de carga, error y recarga manual.
+- **Bienvenida con idioma al frente** (decisión del fundador, 2026-11-13): la primera pantalla muestra la marca, el héroe con el eslogan y el selector Français/Kreyòl; el francés entra primero y la elección se guarda en el dispositivo (AsyncStorage) y se restaura al arrancar.
+- **Identidad visual según la maqueta aprobada (2026-11-13)**: verde profundo, tarjetas blancas con bordes suaves, chips de estado coloreados según el estado REAL del pedido y línea de tiempo real de `order_events` en el detalle. Sin imágenes decorativas ni datos simulados.
 
 ## Qué NO incluye (todavía)
 
-- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, modo repartidor, consola administrativa, OAuth Google/Microsoft, iPhone (sin ruta gratuita: TestFlight exige la Apple Developer Program de pago) y publicación en tiendas (el APK de prueba ya se compila en Actions, ver "APK de prueba (Android)").
+- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, modo repartidor, consola administrativa, iPhone (sin ruta gratuita: TestFlight exige la Apple Developer Program de pago) y publicación en tiendas (el APK de prueba ya se compila en Actions, ver "APK de prueba (Android)").
+- **Google Sign-In** (requisito README sección 12.1): NO existe todavía. El proveedor de Google **no está configurado** en el proyecto Supabase (verificado por API el 2026-11-13: solo email está activo) y el cliente OAuth de Google Cloud lo debe crear el fundador. Mientras tanto, el registro real es por e-mail; la app **no muestra** un botón de Google.
+- **Catálogo de comercios, buscador, mapa en tiempo real, chat y calificaciones**: no existen en el MVP actual y **no se simulan** (sin datos falsos, regla 6); lo que muestra la app son pedidos reales del cliente autenticado.
 
 ## Configuración pública (sin claves privilegiadas)
 

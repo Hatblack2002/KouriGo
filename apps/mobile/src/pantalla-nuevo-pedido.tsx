@@ -4,6 +4,8 @@
  * y la tarifa se piden sin valores por defecto: son decisiones pendientes
  * del fundador (README sección 22). Antes de enviar, la app revalida con
  * las reglas compartidas de @kourigo/domain; el backend vuelve a validar.
+ * Estilo según la maqueta aprobada: selección de tipo en tarjetas grandes,
+ * bloques agrupados y botón verde al final. Incluye vuelta a la lista.
  */
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -20,35 +22,56 @@ import { texto, type ClaveTexto, type Idioma } from "./i18n";
 const estilos = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: COLORES.blanco,
+    backgroundColor: COLORES.grisFondo,
   },
   contenido: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 40,
+  },
+  botonVolver: {
+    alignSelf: "flex-start",
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  textoVolver: {
+    color: COLORES.verde,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  tarjeta: {
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: COLORES.blanco,
   },
   filaTipo: {
     flexDirection: "row",
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: 8,
   },
   opcionTipo: {
     flex: 1,
     borderWidth: 1,
     borderColor: COLORES.borde,
-    borderRadius: 8,
-    padding: 10,
-    marginRight: 8,
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginRight: 10,
     alignItems: "center",
-    backgroundColor: COLORES.grisFondo,
+    backgroundColor: COLORES.blanco,
   },
   opcionTipoActiva: {
     borderColor: COLORES.verde,
-    backgroundColor: COLORES.blanco,
+    backgroundColor: COLORES.verdeClaro,
   },
   textoTipo: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: COLORES.grafito,
+    textAlign: "center",
+  },
+  textoTipoActivo: {
+    color: COLORES.verdeOscuro,
   },
   filaPar: {
     flexDirection: "row",
@@ -60,8 +83,8 @@ const estilos = StyleSheet.create({
   item: {
     borderWidth: 1,
     borderColor: COLORES.borde,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 8,
     backgroundColor: COLORES.grisFondo,
   },
@@ -87,7 +110,7 @@ const estilos = StyleSheet.create({
   },
   agregar: {
     marginTop: 4,
-    marginBottom: 12,
+    marginBottom: 4,
   },
 });
 
@@ -95,6 +118,7 @@ interface Props {
   readonly idioma: Idioma;
   readonly cliente: SupabaseClient;
   readonly alCreado: (pedidoId: string) => void;
+  readonly alVolver: () => void;
 }
 
 interface ArticuloFormulario {
@@ -107,7 +131,7 @@ function articuloInicial(): ArticuloFormulario {
   return { descripcion: "", cantidad: "1", precio: "" };
 }
 
-export function PantallaNuevoPedido({ idioma, cliente, alCreado }: Props) {
+export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver }: Props) {
   const [tipo, setTipo] = useState<TipoPedido>("delivery");
   const [recogida, setRecogida] = useState("");
   const [destino, setDestino] = useState("");
@@ -186,92 +210,101 @@ export function PantallaNuevoPedido({ idioma, cliente, alCreado }: Props) {
 
   return (
     <ScrollView style={estilos.contenedor} contentContainerStyle={estilos.contenido}>
+      <Pressable onPress={alVolver} style={estilos.botonVolver}>
+        <Text style={estilos.textoVolver}>← {texto(idioma, "volver")}</Text>
+      </Pressable>
       <Titulo>{texto(idioma, "nuevo_pedido")}</Titulo>
-      <View style={estilos.filaTipo}>
+      <View style={[estilos.tarjeta, estilos.filaTipo]}>
         {(["delivery", "assisted_purchase"] as readonly TipoPedido[]).map((opcion) => (
           <Pressable
             key={opcion}
             onPress={() => setTipo(opcion)}
             style={[estilos.opcionTipo, tipo === opcion ? estilos.opcionTipoActiva : null]}
           >
-            <Text style={estilos.textoTipo}>{nombreTipo(opcion)}</Text>
+            <Text style={[estilos.textoTipo, tipo === opcion ? estilos.textoTipoActivo : null]}>
+              {nombreTipo(opcion)}
+            </Text>
           </Pressable>
         ))}
       </View>
-      <CampoTexto
-        etiqueta={texto(idioma, "recogida")}
-        valor={recogida}
-        alCambiar={setRecogida}
-        multilinea={true}
-      />
-      <CampoTexto
-        etiqueta={texto(idioma, "destino")}
-        valor={destino}
-        alCambiar={setDestino}
-        multilinea={true}
-      />
-      {tipo === "assisted_purchase" ? (
-        <CampoTexto etiqueta={texto(idioma, "comercio")} valor={comercio} alCambiar={setComercio} />
-      ) : null}
-      <CampoTexto
-        etiqueta={texto(idioma, "notas")}
-        valor={notas}
-        alCambiar={setNotas}
-        multilinea={true}
-      />
-      <View style={estilos.filaPar}>
-        <View style={estilos.columna}>
-          <CampoTexto etiqueta={texto(idioma, "moneda")} valor={moneda} alCambiar={setMoneda} />
-        </View>
-        <View style={estilos.columna}>
-          <CampoTexto
-            etiqueta={texto(idioma, "tarifa_servicio")}
-            valor={tarifa}
-            alCambiar={setTarifa}
-            numerico={true}
-          />
-        </View>
-      </View>
-      <View style={estilos.agregar}>
-        <Boton
-          textoBoton={texto(idioma, "agregar_articulo")}
-          alPulsar={() => setArticulos([...articulos, articuloInicial()])}
-          secundario={true}
+      <View style={estilos.tarjeta}>
+        <CampoTexto
+          etiqueta={texto(idioma, "recogida")}
+          valor={recogida}
+          alCambiar={setRecogida}
+          multilinea={true}
         />
-      </View>
-      {articulos.map((articulo, indice) => (
-        <View key={indice} style={estilos.item}>
-          <View style={estilos.filaItem}>
-            <Text style={estilos.tituloItem}>{`${indice + 1}`}</Text>
-            <Pressable onPress={() => quitarArticulo(indice)} style={estilos.botonQuitar}>
-              <Text style={estilos.textoQuitar}>{texto(idioma, "quitar")}</Text>
-            </Pressable>
+        <CampoTexto
+          etiqueta={texto(idioma, "destino")}
+          valor={destino}
+          alCambiar={setDestino}
+          multilinea={true}
+        />
+        {tipo === "assisted_purchase" ? (
+          <CampoTexto etiqueta={texto(idioma, "comercio")} valor={comercio} alCambiar={setComercio} />
+        ) : null}
+        <CampoTexto
+          etiqueta={texto(idioma, "notas")}
+          valor={notas}
+          alCambiar={setNotas}
+          multilinea={true}
+        />
+        <View style={estilos.filaPar}>
+          <View style={estilos.columna}>
+            <CampoTexto etiqueta={texto(idioma, "moneda")} valor={moneda} alCambiar={setMoneda} />
           </View>
-          <CampoTexto
-            etiqueta={texto(idioma, "articulos")}
-            valor={articulo.descripcion}
-            alCambiar={(valor) => cambiarArticulo(indice, { descripcion: valor })}
-          />
-          <View style={estilos.filaPar}>
-            <View style={estilos.columna}>
-              <CampoTexto
-                etiqueta={texto(idioma, "cantidad")}
-                valor={articulo.cantidad}
-                alCambiar={(valor) => cambiarArticulo(indice, { cantidad: valor })}
-                numerico={true}
-              />
-            </View>
-            <View style={estilos.columna}>
-              <CampoTexto
-                etiqueta={texto(idioma, "precio_estimado")}
-                valor={articulo.precio}
-                alCambiar={(valor) => cambiarArticulo(indice, { precio: valor })}
-                numerico={true}
-              />
-            </View>
+          <View style={estilos.columna}>
+            <CampoTexto
+              etiqueta={texto(idioma, "tarifa_servicio")}
+              valor={tarifa}
+              alCambiar={setTarifa}
+              numerico={true}
+            />
           </View>
         </View>
-      ))}
+      </View>
+      <View style={estilos.tarjeta}>
+        <View style={estilos.agregar}>
+          <Boton
+            textoBoton={texto(idioma, "agregar_articulo")}
+            alPulsar={() => setArticulos([...articulos, articuloInicial()])}
+            secundario={true}
+          />
+        </View>
+        {articulos.map((articulo, indice) => (
+          <View key={indice} style={estilos.item}>
+            <View style={estilos.filaItem}>
+              <Text style={estilos.tituloItem}>{`${indice + 1}`}</Text>
+              <Pressable onPress={() => quitarArticulo(indice)} style={estilos.botonQuitar}>
+                <Text style={estilos.textoQuitar}>{texto(idioma, "quitar")}</Text>
+              </Pressable>
+            </View>
+            <CampoTexto
+              etiqueta={texto(idioma, "articulos")}
+              valor={articulo.descripcion}
+              alCambiar={(valor) => cambiarArticulo(indice, { descripcion: valor })}
+            />
+            <View style={estilos.filaPar}>
+              <View style={estilos.columna}>
+                <CampoTexto
+                  etiqueta={texto(idioma, "cantidad")}
+                  valor={articulo.cantidad}
+                  alCambiar={(valor) => cambiarArticulo(indice, { cantidad: valor })}
+                  numerico={true}
+                />
+              </View>
+              <View style={estilos.columna}>
+                <CampoTexto
+                  etiqueta={texto(idioma, "precio_estimado")}
+                  valor={articulo.precio}
+                  alCambiar={(valor) => cambiarArticulo(indice, { precio: valor })}
+                  numerico={true}
+                />
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
       {errores.map((clave) => (
         <MensajeError key={clave} mensaje={texto(idioma, clave)} />
       ))}

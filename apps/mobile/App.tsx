@@ -1,21 +1,33 @@
 /**
- * KouriGo — aplicación móvil (Etapa 4): autenticación real contra Supabase
- * Auth y creación de pedidos conectada al backend real (PostgREST bajo RLS
- * + Edge Function transicion-pedido). El modo repartidor y la consola
- * administrativa se implementan en etapas posteriores del plan.
+ * KouriGo — aplicación móvil (Etapa 4, rediseño visual 2026-11-13):
+ * autenticación real contra Supabase Auth y creación de pedidos conectada
+ * al backend real (PostgREST bajo RLS + Edge Function transicion-pedido).
  *
- * Navegación por estado sin librerías extra: el alcance de la etapa exige
- * un flujo completo y verificable, no un mapa de pantallas decorativo.
+ * Flujo de entrada según la decisión del fundador (2026-11-13): la primera
+ * pantalla es la BIENVENIDA con la marca y la selección de idioma al frente
+ * (français primero; kreyòl siempre presente). La elección queda guardada en
+ * el dispositivo (AsyncStorage) y se restaura al arrancar. Sin sesión se
+ * permanece en bienvenida/inicio/registro; con sesión se entra a la lista.
+ * El modo repartidor, el catálogo y el mapa siguen en etapas posteriores:
+ * no se simulan.
+ *
+ * Navegación por estado sin librerías extra: el alcance exige un flujo
+ * completo y verificable, no un mapa de pantallas decorativo.
  */
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { PantallaBienvenida } from "./src/pantalla-bienvenida";
 import { PantallaInicioSesion, PantallaRegistro } from "./src/pantalla-autenticacion";
 import { PantallaListaPedidos } from "./src/pantalla-lista-pedidos";
 import { PantallaNuevoPedido } from "./src/pantalla-nuevo-pedido";
 import { PantallaDetallePedido } from "./src/pantalla-detalle-pedido";
-import { MensajeError, Titulo, COLORES } from "./src/components";
-import { almacenAsyncStorage } from "./src/almacen-async-storage";
+import { MensajeError, Marca, COLORES } from "./src/components";
+import {
+  almacenAsyncStorage,
+  guardarIdioma,
+  leerIdiomaGuardado,
+} from "./src/almacen-async-storage";
 import {
   leerConfiguracionPublica,
   ConfiguracionFaltanteError,
@@ -28,9 +40,10 @@ import {
   suscribirseCambiosSesion,
   type SesionActiva,
 } from "./src/auth";
-import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./src/i18n";
+import { texto, type Idioma } from "./src/i18n";
 
 type Ruta =
+  | { readonly nombre: "bienvenida" }
   | { readonly nombre: "inicio" }
   | { readonly nombre: "registro" }
   | { readonly nombre: "lista" }
@@ -46,26 +59,24 @@ const estilos = StyleSheet.create({
     padding: 20,
     marginTop: 48,
   },
-  barraIdioma: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    padding: 12,
+  contenidoCentrado: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
-  textoIdioma: {
-    color: COLORES.verde,
-    fontWeight: "700",
-    fontSize: 13,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  textoCargando: {
+    color: COLORES.grisTexto,
+    fontSize: 14,
   },
 });
 
 export default function App() {
-  const [idioma, setIdioma] = useState<Idioma>("ht");
+  const [idioma, setIdiomaEstado] = useState<Idioma>("fr");
   const [cliente, setCliente] = useState<SupabaseClient | null>(null);
   const [configuracion, setConfiguracion] = useState<ConfiguracionPublica | null>(null);
   const [sesion, setSesion] = useState<SesionActiva | null>(null);
-  const [ruta, setRuta] = useState<Ruta>({ nombre: "inicio" });
+  const [ruta, setRuta] = useState<Ruta>({ nombre: "bienvenida" });
   const [errorConfiguracion, setErrorConfiguracion] = useState<string | null>(null);
   const [avisoRegistro, setAvisoRegistro] = useState<string | null>(null);
   const [cargandoInicial, setCargandoInicial] = useState(true);
@@ -81,18 +92,23 @@ export default function App() {
       const clienteApp = crearClienteApp(config, almacenAsyncStorage());
       setConfiguracion(config);
       setCliente(clienteApp);
-      void sesionActual(clienteApp).then((sesionRestaurada) => {
-        if (!activo) {
-          return;
-        }
-        setSesion(sesionRestaurada);
-        setRuta(sesionRestaurada === null ? { nombre: "inicio" } : { nombre: "lista" });
-        setCargandoInicial(false);
-      });
+      void Promise.all([sesionActual(clienteApp), leerIdiomaGuardado()]).then(
+        ([sesionRestaurada, idiomaGuardado]) => {
+          if (!activo) {
+            return;
+          }
+          if (idiomaGuardado === "ht" || idiomaGuardado === "fr") {
+            setIdiomaEstado(idiomaGuardado);
+          }
+          setSesion(sesionRestaurada);
+          setRuta(sesionRestaurada === null ? { nombre: "bienvenida" } : { nombre: "lista" });
+          setCargandoInicial(false);
+        },
+      );
       cancelar = suscribirseCambiosSesion(clienteApp, (sesionNueva) => {
         setSesion(sesionNueva);
         if (sesionNueva === null) {
-          setRuta({ nombre: "inicio" });
+          setRuta({ nombre: "bienvenida" });
         }
       });
     } catch (error) {
@@ -109,11 +125,16 @@ export default function App() {
     };
   }, []);
 
+  const cambiarIdioma = (nuevo: Idioma) => {
+    setIdiomaEstado(nuevo);
+    void guardarIdioma(nuevo);
+  };
+
   if (errorConfiguracion !== null) {
     return (
       <View style={estilos.contenedor}>
         <View style={estilos.contenidoError}>
-          <Titulo>{texto(idioma, "nombre_app")}</Titulo>
+          <Marca idioma={idioma} />
           <MensajeError mensaje={errorConfiguracion} />
         </View>
       </View>
@@ -123,54 +144,34 @@ export default function App() {
   if (cargandoInicial || cliente === null || configuracion === null) {
     return (
       <View style={estilos.contenedor}>
-        <View style={estilos.contenidoError}>
-          <Text>{texto(idioma, "cargando")}</Text>
+        <View style={estilos.contenidoCentrado}>
+          <Marca idioma={idioma} centrado={true} />
+          <Text style={estilos.textoCargando}>{texto(idioma, "cargando")}</Text>
         </View>
       </View>
     );
   }
 
-  const cambiarIdioma = (nuevo: Idioma) => {
-    setIdioma(nuevo);
-  };
-
-  const selectorIdioma = (
-    <View style={estilos.barraIdioma}>
-      {IDIOMAS.map((opcion) => (
-        <Text
-          key={opcion}
-          onPress={() => cambiarIdioma(opcion)}
-          style={[estilos.textoIdioma, opcion === idioma ? { color: COLORES.grafito } : null]}
-        >
-          {ETIQUETA_IDIOMA[opcion]}
-        </Text>
-      ))}
-    </View>
-  );
-
   if (sesion === null) {
     if (ruta.nombre === "registro") {
       return (
-        <View style={estilos.contenedor}>
-          {selectorIdioma}
-          <PantallaRegistro
-            idioma={idioma}
-            cliente={cliente}
-            alIniciar={(sesionNueva) => {
-              setSesion(sesionNueva);
-              setRuta({ nombre: "lista" });
-            }}
-            alPendienteConfirmacion={() => {
-              setAvisoRegistro(texto(idioma, "pendiente_confirmacion"));
-              setRuta({ nombre: "inicio" });
-            }}
-          />
-        </View>
+        <PantallaRegistro
+          idioma={idioma}
+          cliente={cliente}
+          alIniciar={(sesionNueva) => {
+            setSesion(sesionNueva);
+            setRuta({ nombre: "lista" });
+          }}
+          alVolver={() => setRuta({ nombre: "bienvenida" })}
+          alPendienteConfirmacion={() => {
+            setAvisoRegistro(texto(idioma, "pendiente_confirmacion"));
+            setRuta({ nombre: "inicio" });
+          }}
+        />
       );
     }
-    return (
-      <View style={estilos.contenedor}>
-        {selectorIdioma}
+    if (ruta.nombre === "inicio") {
+      return (
         <PantallaInicioSesion
           idioma={idioma}
           cliente={cliente}
@@ -180,14 +181,17 @@ export default function App() {
             setSesion(sesionNueva);
             setRuta({ nombre: "lista" });
           }}
+          alVolver={() => setRuta({ nombre: "bienvenida" })}
         />
-        <Text
-          onPress={() => setRuta({ nombre: "registro" })}
-          style={{ color: COLORES.verde, textAlign: "center", padding: 16, fontWeight: "700" }}
-        >
-          {texto(idioma, "no_tengo_cuenta")}
-        </Text>
-      </View>
+      );
+    }
+    return (
+      <PantallaBienvenida
+        idioma={idioma}
+        alCambiarIdioma={cambiarIdioma}
+        alIrRegistro={() => setRuta({ nombre: "registro" })}
+        alIrInicioSesion={() => setRuta({ nombre: "inicio" })}
+      />
     );
   }
 
@@ -197,6 +201,7 @@ export default function App() {
         idioma={idioma}
         cliente={cliente}
         alCreado={(pedidoId) => setRuta({ nombre: "detalle", pedidoId })}
+        alVolver={() => setRuta({ nombre: "lista" })}
       />
     );
   }

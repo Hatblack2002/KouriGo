@@ -20,3 +20,15 @@ export function almacenAsyncStorage(): AlmacenSesion {
     },
   };
 }
+
+const CLAVE_IDIOMA = "kourigo.idioma";
+
+/** Lee el idioma elegido en la bienvenida (null si nunca se eligió). */
+export function leerIdiomaGuardado(): Promise<string | null> {
+  return AsyncStorage.getItem(CLAVE_IDIOMA);
+}
+
+/** Guarda el idioma elegido para las siguientes ejecuciones. */
+export async function guardarIdioma(idioma: string): Promise<void> {
+  await AsyncStorage.setItem(CLAVE_IDIOMA, idioma);
+}

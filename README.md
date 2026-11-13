@@ -400,7 +400,7 @@ La consola administrativa no es una sección pública. Su protección debe exist
 
 Requisitos obligatorios:
 
-1. El registro público de cliente utiliza Supabase Auth con Google Sign-In.
+1. El registro público de cliente utiliza Supabase Auth con Google Sign-In. (Estado verificado el 2026-11-13: el proveedor de Google NO está configurado en el proyecto Supabase —solo email está activo— y la app NO muestra un botón de Google. Hace falta que el fundador cree el cliente OAuth en Google Cloud; mientras tanto, el registro real es por e-mail y no se simula el botón.)
 2. La cuenta de repartidor se crea mediante un flujo separado y queda bloqueada para operar hasta completar la verificación documental y recibir aprobación administrativa; el detalle obligatorio está en `docs/operations/courier-identity-verification.md`.
 3. Las cuentas administrativas utilizan Microsoft Sign-In y deben ser creadas/invitadas o autorizadas previamente por el administrador principal; nunca existe registro público de administradores.
 4. Los roles de repartidor y administrador se asignan mediante flujos autorizados del servidor.
