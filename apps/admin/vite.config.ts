@@ -14,5 +14,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    // La prueba E2E contra el proyecto real hace varios viajes de red por
+    // paso (usuarios por Admin API, funciones del runtime): 60 s por prueba
+    // y por hook, frente a los 5 s por defecto de vitest.
+    testTimeout: 60000,
+    hookTimeout: 60000,
   },
 });
