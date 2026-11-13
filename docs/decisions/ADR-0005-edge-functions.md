@@ -30,7 +30,7 @@ La Etapa 3 exige operaciones privilegiadas de servidor: despacho de pedidos, apr
 - Cobertura positiva y negativa por rol, ejecutada contra el proyecto real de Supabase en cada push que toque `database/**`, `scripts/**` o `supabase/**`.
 
 **Riesgos y obligaciones**
-- **Despliegue al runtime de Supabase pendiente:** las funciones están probadas en CI contra el proyecto real, pero aún no están desplegadas al runtime de Edge Functions. El despliegue requiere el `SUPABASE_ACCESS_TOKEN` (gratuito, se crea en el dashboard de Supabase) configurado como secreto y `supabase functions deploy` en un paso del workflow; queda como paso operativo siguiente, sin bloquear la verificación de la etapa (pruebas de integración en CI, según el plan).
+- **Despliegue al runtime de Supabase:** completado el 2026-11-13 con el `SUPABASE_ACCESS_TOKEN` (gratuito, creado por el responsable del producto en el dashboard) configurado como secreto; el workflow despliega con `supabase functions deploy --yes` y exige 401 sin JWT de cada endpoint (run 43466047543, commit 3045fa5). Detalles en «Notas operativas del despliegue al runtime».
 - El espejo `_shared/dominio.ts` debe mantenerse sincronizado con `packages/domain` y los triggers; las tres suites de pruebas (vitest, Deno y SQL) cierran la consistencia.
 - La firma de documentos tiene vigencia de 300 s y se audita; la retención y eliminación segura de documentos sigue pendiente antes de producción (ADR-0004).
 
@@ -45,3 +45,9 @@ La Etapa 3 exige operaciones privilegiadas de servidor: despacho de pedidos, apr
 1. **El secreto `SUPABASE_URL` tenía el ref transpuesto** (`ouowxtptnqptsajqgjud` en lugar de `ouowxtpntqptsajqgjud`): hostname inexistente → NXDOMAIN en los runners, DoH sin respuesta y 400 del edge de Cloudflare al fijar una IP. El ref correcto se tomó del claim `ref` del JWT del proyecto y el secreto se repuso; el pooler IPv4 de ADR-0003 nunca se vio afectado porque su hostname no depende del ref.
 2. **Regla del header `apikey`:** PostgREST y Storage exigen SIEMPRE una clave de proyecto (anon o service_role); el JWT del llamador va solo en `Authorization: Bearer`. Usar el JWT como apikey produce "Invalid API key" — corregido en `_shared/rest.ts` y detectado por la prueba de integración real.
 3. **Resolución DNS en runners:** el paso del workflow comprueba el host con `getent`; solo si no resuelve prueba cuatro resolutores DoH y, como último recurso, fija una IP anycast conocida de Cloudflare en `/etc/hosts` EXIGIENDO un 200 real de `/auth/v1/health` (sin verdes falsos). Con el hostname correcto, los runners resuelven de forma nativa.
+
+## Notas operativas del despliegue al runtime (2026-11-13)
+
+4. **El secreto `SUPABASE_URL` se volvió a corromper al reponer los secretos desde una copia local desactualizada** (ref transpuesto `ouowxtptnqptsajqgjud`): el paso de DNS falló con host inexistente, DoH sin respuesta y la IP de respaldo con health 400 (run 43464024629). Corregido reponiendo el secreto con el ref correcto, tomado del claim `ref` de las claves del proyecto; el DNS nativo volvió a resolver (run 43464548433). Lección: al reponer secretos, validar el ref contra el claim `ref` del JWT del proyecto antes de escribir el secreto.
+5. **La CLI de Supabase exige confirmación en modo no interactivo:** `supabase functions deploy` en CI requiere `--yes` («Confirmation required… Re-run with --yes to confirm», run 43464548433); añadido al paso y verificado.
+6. **Despliegue verificado:** run 43466047543 (commit 3045fa5) desplegó las 4 funciones y verificó 401 sin JWT en cada endpoint del runtime; una prueba de humo independiente contra `https://<ref>.supabase.co/functions/v1/<función>` devolvió 401 con `{"code":"UNAUTHORIZED_NO_AUTH_HEADER"}` en las 4.

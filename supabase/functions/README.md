@@ -36,6 +36,6 @@ deno test --allow-all supabase/functions/_pruebas/unitarias.test.ts
 deno test --allow-all supabase/functions/_pruebas/integracion.test.ts   # con secretos
 ```
 
-## Despliegue (pendiente)
+## Despliegue
 
-Las funciones están probadas en CI contra el proyecto real, pero aún no se despliegan al runtime de Supabase. Para desplegarlas (sin costo): crear el `SUPABASE_ACCESS_TOKEN` gratuito en el dashboard, guardarlo como secreto y añadir el paso `supabase functions deploy` al workflow. Ver ADR-0005.
+Las funciones se despliegan al runtime de Supabase desde el workflow `Supabase (proyecto real)` con `supabase functions deploy --yes --project-ref <ref>` y el secreto `SUPABASE_ACCESS_TOKEN` (token gratuito creado en el dashboard por el responsable del producto). Tras el despliegue, el workflow exige que cada endpoint responda 401 sin JWT. Primera verificación: run 43466047543 (commit 3045fa5); las 4 funciones responden 401 en `https://<ref>.supabase.co/functions/v1/<función>`. Ver ADR-0005 («Notas operativas del despliegue al runtime»).
