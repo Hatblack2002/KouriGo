@@ -241,7 +241,11 @@ export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver }: Pro
           multilinea={true}
         />
         {tipo === "assisted_purchase" ? (
-          <CampoTexto etiqueta={texto(idioma, "comercio")} valor={comercio} alCambiar={setComercio} />
+          <CampoTexto
+            etiqueta={texto(idioma, "comercio")}
+            valor={comercio}
+            alCambiar={setComercio}
+          />
         ) : null}
         <CampoTexto
           etiqueta={texto(idioma, "notas")}

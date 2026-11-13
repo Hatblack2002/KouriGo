@@ -9,14 +9,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  Aviso,
-  Boton,
-  CampoTexto,
-  MensajeError,
-  Titulo,
-  COLORES,
-} from "./components";
+import { Aviso, Boton, CampoTexto, MensajeError, Titulo, COLORES } from "./components";
 import { iniciarSesion, registrarCliente, type SesionActiva } from "./auth";
 import type { Idioma } from "./i18n";
 import { texto } from "./i18n";
@@ -75,7 +68,13 @@ interface PropsBase {
   readonly aviso?: string | null;
 }
 
-function EnlaceVolver({ idioma, alVolver }: { readonly idioma: Idioma; readonly alVolver: () => void }) {
+function EnlaceVolver({
+  idioma,
+  alVolver,
+}: {
+  readonly idioma: Idioma;
+  readonly alVolver: () => void;
+}) {
   return (
     <Pressable onPress={alVolver} style={estilos.botonVolver}>
       <Text style={estilos.textoVolver}>← {texto(idioma, "volver")}</Text>

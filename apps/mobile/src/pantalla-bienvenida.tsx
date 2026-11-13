@@ -133,10 +133,7 @@ export function PantallaBienvenida({
               style={[estilos.opcion, opcion === idioma ? estilos.opcionActiva : null]}
             >
               <Text
-                style={[
-                  estilos.opcionTexto,
-                  opcion === idioma ? estilos.opcionTextoActivo : null,
-                ]}
+                style={[estilos.opcionTexto, opcion === idioma ? estilos.opcionTextoActivo : null]}
               >
                 {ETIQUETA_IDIOMA[opcion]}
               </Text>
