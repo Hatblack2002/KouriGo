@@ -30,8 +30,7 @@ export type ResultadoAuth =
   | { tipo: "error"; clave: ClaveErrorAuth; mensaje: string };
 
 export type ResultadoSesion =
-  | { tipo: "ok"; sesion: SesionActiva }
-  | { tipo: "error"; clave: ClaveErrorAuth; mensaje: string };
+  { tipo: "ok"; sesion: SesionActiva } | { tipo: "error"; clave: ClaveErrorAuth; mensaje: string };
 
 /**
  * Crea el cliente de Supabase de la app con la sesión persistida en el

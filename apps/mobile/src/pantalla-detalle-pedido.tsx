@@ -189,7 +189,12 @@ export function PantallaDetallePedido({
       style={estilos.contenedor}
       contentContainerStyle={estilos.contenido}
       refreshControl={
-        <RefreshControl refreshing={cargando} onRefresh={() => { void cargar(); }} />
+        <RefreshControl
+          refreshing={cargando}
+          onRefresh={() => {
+            void cargar();
+          }}
+        />
       }
     >
       <View style={estilos.barraVolver}>
@@ -246,9 +251,7 @@ export function PantallaDetallePedido({
                 <Text style={estilos.eventoTexto}>
                   {`${evento.from_status ?? "—"} -> ${evento.to_status ?? "—"} (${evento.event_type})`}
                 </Text>
-                <Text style={estilos.eventoFecha}>
-                  {formatearFecha(evento.created_at, idioma)}
-                </Text>
+                <Text style={estilos.eventoFecha}>{formatearFecha(evento.created_at, idioma)}</Text>
               </View>
             ))
           )}

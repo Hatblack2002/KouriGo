@@ -71,9 +71,7 @@ export interface DatosFormularioPedido {
 
 const PATRON_MONEDA = /^[A-Z]{3}$/;
 
-export type ResultadoPedido<T> =
-  | { tipo: "ok"; datos: T }
-  | { tipo: "error"; mensaje: string };
+export type ResultadoPedido<T> = { tipo: "ok"; datos: T } | { tipo: "error"; mensaje: string };
 
 /**
  * Validación de la app con claves de mensaje localizables (src/i18n.ts).
@@ -175,7 +173,9 @@ export async function crearPedidoBorrador(
       currency: datos.moneda,
       service_fee_amount: datos.tarifaServicio,
     })
-    .select("id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at")
+    .select(
+      "id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at",
+    )
     .single();
   if (insertado.error !== null || insertado.data === null) {
     return { tipo: "error", mensaje: `orders: ${insertado.error?.message ?? "sin datos"}` };
@@ -204,7 +204,9 @@ export async function listarPedidos(
 ): Promise<ResultadoPedido<FilaPedido[]>> {
   const { data, error } = await cliente
     .from("orders")
-    .select("id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at")
+    .select(
+      "id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at",
+    )
     .order("created_at", { ascending: false })
     .limit(50);
   if (error !== null || data === null) {
@@ -221,7 +223,9 @@ export async function obtenerPedido(
 ): Promise<PedidoObtenido> {
   const { data, error } = await cliente
     .from("orders")
-    .select("id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at")
+    .select(
+      "id, client_id, order_type, status, pickup_address_text, dropoff_address_text, store_address_text, notes, currency, service_fee_amount, created_at, updated_at",
+    )
     .eq("id", pedidoId)
     .maybeSingle();
   if (error !== null) {

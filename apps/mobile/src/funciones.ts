@@ -79,8 +79,8 @@ export async function invocarFuncion<T>(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": configuracion.supabaseAnonKey,
-          "Authorization": `Bearer ${accessToken}`,
+          apikey: configuracion.supabaseAnonKey,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(cuerpo),
       }),

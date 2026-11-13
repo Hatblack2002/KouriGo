@@ -46,9 +46,7 @@ describe("validarFormularioPedido", () => {
       ...datosValidos(),
       tipo: "assisted_purchase" as const,
       comercioTexto: "Delimart, Delmas",
-      items: [
-        { descripcion: "Riz", cantidad: 2, precioEstimado: 15000 } as ArticuloPedido,
-      ],
+      items: [{ descripcion: "Riz", cantidad: 2, precioEstimado: 15000 } as ArticuloPedido],
     };
     expect(validarFormularioPedido(datos)).toEqual([]);
   });

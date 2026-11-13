@@ -128,8 +128,7 @@ const TEXTOS_HT: Record<ClaveTexto, string> = {
   crear_borrador: "Kreye kòmand la",
   confirmar_solicitud: "Konfime demann lan",
   cancelar_pedido: "Anile kòmand lan",
-  pendiente_confirmacion:
-    "Nou voye yon lyen konfimasyon nan imèl ou. Konfime li anvan ou konekte.",
+  pendiente_confirmacion: "Nou voye yon lyen konfimasyon nan imèl ou. Konfime li anvan ou konekte.",
   err_recogida: "Pwen ramasman: 5 a 300 karaktè.",
   err_destino: "Destinasyon: 5 a 300 karaktè.",
   err_comercio: "Indike negòs kote pou achte a.",

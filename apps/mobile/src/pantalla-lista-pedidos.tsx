@@ -185,7 +185,12 @@ export function PantallaListaPedidos({
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 24 }}
         refreshControl={
-          <RefreshControl refreshing={cargando} onRefresh={() => { void cargar(); }} />
+          <RefreshControl
+            refreshing={cargando}
+            onRefresh={() => {
+              void cargar();
+            }}
+          />
         }
         ListEmptyComponent={
           error === null && !cargando ? (

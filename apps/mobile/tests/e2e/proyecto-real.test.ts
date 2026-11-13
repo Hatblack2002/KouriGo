@@ -39,8 +39,7 @@ const env = process.env as unknown as Record<string, string | undefined>;
 const urlProyecto = (env.SUPABASE_URL ?? "").trim();
 const claveAnon = (env.SUPABASE_ANON_KEY ?? "").trim();
 const claveServicio = (env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
-const entornoCompleto =
-  urlProyecto.length > 0 && claveAnon.length > 0 && claveServicio.length > 0;
+const entornoCompleto = urlProyecto.length > 0 && claveAnon.length > 0 && claveServicio.length > 0;
 
 const config: ConfiguracionPublica = {
   supabaseUrl: urlProyecto.replace(/\/+$/, ""),
@@ -124,10 +123,7 @@ async function eliminarUsuario(idUsuario: string): Promise<string | null> {
   }
 }
 
-async function eliminarFilas(
-  tabla: string,
-  filtro: string,
-): Promise<string | null> {
+async function eliminarFilas(tabla: string, filtro: string): Promise<string | null> {
   try {
     const respuesta = await conReintentos(
       () =>
@@ -146,10 +142,7 @@ async function eliminarFilas(
   }
 }
 
-async function contarFilas(
-  tabla: string,
-  filtro: string,
-): Promise<number> {
+async function contarFilas(tabla: string, filtro: string): Promise<number> {
   const respuesta = await conReintentos(
     () =>
       fetch(`${config.supabaseUrl}/rest/v1/${tabla}?${filtro}&select=*`, {
@@ -186,10 +179,7 @@ describe.skipIf(!entornoCompleto)("App móvil contra el proyecto real de Supabas
     if (ids.length > 0) {
       // Red de seguridad: cualquier pedido creado por los usuarios de prueba
       // (los pedidos no se eliminan en cascada al borrar el usuario).
-      const errorPorCliente = await eliminarFilas(
-        "orders",
-        `client_id=in.(${ids.join(",")})`,
-      );
+      const errorPorCliente = await eliminarFilas("orders", `client_id=in.(${ids.join(",")})`);
       if (errorPorCliente !== null) {
         fallosLimpieza.push(errorPorCliente);
       }
