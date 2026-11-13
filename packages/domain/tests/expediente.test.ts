@@ -88,9 +88,9 @@ describe("transiciones administrativas", () => {
 
   it("permite reabrir expirados y reverificar aprobados", () => {
     expect(esTransicionExpedienteValida("expired", "under_review", "administrador")).toBe(true);
-    expect(esTransicionExpedienteValida("approved", "reverification_required", "administrador")).toBe(
-      true,
-    );
+    expect(
+      esTransicionExpedienteValida("approved", "reverification_required", "administrador"),
+    ).toBe(true);
     expect(esTransicionExpedienteValida("approved", "expired", "administrador")).toBe(true);
   });
 

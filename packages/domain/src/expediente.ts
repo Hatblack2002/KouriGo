@@ -130,9 +130,7 @@ export function validarTransicionExpediente(
   actor: ActorExpediente,
   datos: DatosTransicionExpediente = {},
 ): ResultadoValidacionExpediente {
-  const transicion = TRANSICIONES_EXPEDIENTE_POR_ACTOR[actor].find(
-    (t) => t.de === de && t.a === a,
-  );
+  const transicion = TRANSICIONES_EXPEDIENTE_POR_ACTOR[actor].find((t) => t.de === de && t.a === a);
   if (!transicion) {
     return {
       valida: false,
