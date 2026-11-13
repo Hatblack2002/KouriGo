@@ -148,14 +148,20 @@ describe("consistencia de la matriz de transiciones", () => {
     }
   });
 
-  it("la administración puede ejecutar todas las transiciones de los demás actores", () => {
+  it("la administración cubre las transiciones del sistema", () => {
     const deAdmin = new Set(
       TRANSICIONES_EXPEDIENTE_POR_ACTOR.administrador.map((t) => `${t.de}->${t.a}`),
     );
-    for (const actor of ACTORES_EXPEDIENTE) {
-      for (const transicion of TRANSICIONES_EXPEDIENTE_POR_ACTOR[actor]) {
-        expect(deAdmin.has(`${transicion.de}->${transicion.a}`)).toBe(true);
-      }
+    for (const transicion of TRANSICIONES_EXPEDIENTE_POR_ACTOR.sistema) {
+      expect(deAdmin.has(`${transicion.de}->${transicion.a}`)).toBe(true);
+    }
+  });
+
+  it("la presentación del expediente es un acto personal del candidato", () => {
+    for (const transicion of TRANSICIONES_EXPEDIENTE_POR_ACTOR.candidato) {
+      expect(esTransicionExpedienteValida(transicion.de, transicion.a, "administrador")).toBe(
+        false,
+      );
     }
   });
 
