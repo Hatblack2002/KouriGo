@@ -1,0 +1,88 @@
+# KouriGo — Despliegue de la consola administrativa en GitHub Pages.
+# GitHub Pages es el alojamiento estático gratuito de GitHub: la consola es
+# un bundle estático (Vite, ADR-0007) sin servidor propio ni coste. El bundle
+# se compila con la configuración pública REAL del proyecto (URL del proyecto
+# y clave anon, ambas públicas por diseño: el acceso a los datos lo impone
+# RLS en el backend según ADR-0001). La clave service-role NUNCA entra en el
+# bundle ni en Pages. El resultado es un sitio navegable con inicio de sesión
+# real contra Supabase Auth. Ver apps/admin/README.md (sección
+# "Acceso en vivo (GitHub Pages)").
+
+name: "Despliegue consola (Pages)"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "packages/**"
+      - ".github/workflows/consola-admin-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  compilar:
+    name: "Compilar el bundle con la configuración pública real"
+    runs-on: ubuntu-latest
+    env:
+      CI: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalación reproducible
+        run: npm ci
+
+      - name: Compilar paquetes internos
+        run: npm run build
+
+      - name: "Compilar con URL y clave anon reales (públicas por diseño)"
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: npm run build --workspace @kourigo/admin
+
+      - name: Comprobar que el bundle lleva la configuración real
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: |
+          ANFITRION=$(printf "%s" "$VITE_SUPABASE_URL" | sed -E "s#https?://##")
+          echo "Comprobando el anfitrión real: ${ANFITRION}"
+          if ! grep -rqF "$ANFITRION" apps/admin/dist; then
+            echo "El bundle no lleva la URL real de Supabase: despliegue abortado" >&2
+            exit 1
+          fi
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/admin/dist
+
+  publicar:
+    name: "Publicar en GitHub Pages"
+    needs: compilar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Desplegar en Pages
+        id: despliegue
+        uses: actions/deploy-pages@v4

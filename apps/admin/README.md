@@ -52,3 +52,34 @@ Workflow `Consola administrativa (web)` (`.github/workflows/consola-admin.yml`):
    pedidos bajo RLS, despacho, aceptación, corrección administrativa con
    motivo y auditoría, URL firmada del documento privado, rechazos por rol y
    limpieza sin residuos.
+
+## Acceso en vivo (GitHub Pages)
+
+Workflow `Despliegue consola (Pages)`
+(`.github/workflows/consola-admin-pages.yml`): compila el bundle con la
+configuración pública real (URL y clave anon, públicas por diseño) y lo
+publica en GitHub Pages, el alojamiento estático gratuito de GitHub, en cada
+cambio de `main`. La consola queda navegable en:
+
+- **URL**: <https://hatblack2002.github.io/KouriGo/>
+
+No hay servidor propio ni coste: Pages solo sirve archivos estáticos; toda la
+lógica con privilegios vive en el backend (RLS + Edge Functions, ADR-0001 y
+ADR-0005).
+
+### Aprovisionar la primera cuenta administradora
+
+NO hay registro público (README sección 12). La primera cuenta se crea desde
+el panel de Supabase (Supabase Dashboard → proyecto KouriGo):
+
+1. **Authentication → Users → Add user**: crear el usuario con correo y
+   contraseña, con **Auto Confirm User** activado, y copiar su ID (UUID).
+2. **Table Editor → `user_roles` → Insert row**: `user_id` = UUID copiado,
+   `role` = `admin`, `status` = `active`.
+3. Entrar a la URL de la consola con ese correo y contraseña.
+
+El permiso se comprueba SIEMPRE en el backend: una sesión válida sin rol
+`admin` activo queda bloqueada en la consola y, aun conociendo las URLs, RLS
+le devuelve listas vacías y niega las operaciones privilegiadas. Las cuentas
+administradoras adicionales se crean igual (panel de Supabase) hasta que la
+consola incluya gestión de usuarios.
