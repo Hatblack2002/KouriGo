@@ -157,8 +157,12 @@ describe.skipIf(!entornoCompleto)("App móvil contra el proyecto real de Supabas
   const correoA = `cliente-a-${sufijo}@kourigo-e2e.test`;
   const correoB = `cliente-b-${sufijo}@kourigo-e2e.test`;
   // El registro público valida el dominio del correo (la Admin API no):
-  // example.com está reservado por IANA para documentación y pruebas.
-  const correoC = `cliente-c-${sufijo}@example.com`;
+  // GoTrue exige dominios con registros MX reales y rechaza example.com
+  // (reservado por IANA y sin MX, verificado el 2026-11-13: el signup
+  // público responde «Email address ... is invalid»). La dirección usa un
+  // dominio con MX para ejercitar el flujo REAL de registro; es un artefacto
+  // de prueba que la limpieza elimina siempre.
+  const correoC = `cliente-c-${sufijo}@gmail.com`;
 
   let idA: string | null = null;
   let idB: string | null = null;
