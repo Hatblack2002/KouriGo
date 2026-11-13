@@ -88,8 +88,19 @@ RESET request.jwt.claims;
 
 -- ---------------------------------------------------------------------------
 -- Fase 2 — service_role despacha y deja auditoría completa
+--
+-- Si la sesión puede asumir service_role (CI y proyecto real con membresía
+-- concedida) se ejercita el GRANT; si no, el propietario ejecuta el RPC
+-- (mismo comportamiento: la función es SECURITY DEFINER).
 -- ---------------------------------------------------------------------------
+SELECT CASE
+  WHEN pg_has_role(current_user, 'service_role', 'member') THEN '1' ELSE '0'
+END AS con_service_role
+\gset
+
+\if :con_service_role
 SET LOCAL role service_role;
+\endif
 
 SELECT public.despachar_pedido(
   'b0000000-0000-4000-8000-0000000000d1',
@@ -105,15 +116,20 @@ SELECT public.despachar_pedido(
 RESET role;
 RESET request.jwt.claims;
 
+-- psql no interpola variables dentro de bloques dolarizados: se pasa el
+-- valor por una GUC local a la transacción.
+SELECT set_config('prueba.asignacion_despacho', :'v_asignacion', true);
+
 DO $$
 DECLARE
+  v_asignacion uuid := current_setting('prueba.asignacion_despacho')::uuid;
   v_estado text;
   v_asignaciones int;
   v_auditorias int;
   v_eventos int;
 BEGIN
   PERFORM public.afirmar(
-    :'v_asignacion'::uuid IS NOT NULL,
+    v_asignacion IS NOT NULL,
     'el despacho debe devolver el identificador de la asignación creada'
   );
 
@@ -159,7 +175,9 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Fase 3 — rechazos del RPC
 -- ---------------------------------------------------------------------------
+\if :con_service_role
 SET LOCAL role service_role;
+\endif
 
 DO $$
 DECLARE
