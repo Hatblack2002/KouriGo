@@ -161,7 +161,9 @@ describe.skipIf(!entornoCompleto)("App móvil contra el proyecto real de Supabas
   const password = `Kg-${sufijo}-Etapa4!`;
   const correoA = `cliente-a-${sufijo}@kourigo-e2e.test`;
   const correoB = `cliente-b-${sufijo}@kourigo-e2e.test`;
-  const correoC = `cliente-c-${sufijo}@kourigo-e2e.test`;
+  // El registro público valida el dominio del correo (la Admin API no):
+  // example.com está reservado por IANA para documentación y pruebas.
+  const correoC = `cliente-c-${sufijo}@example.com`;
 
   let idA: string | null = null;
   let idB: string | null = null;
