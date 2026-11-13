@@ -11,9 +11,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'database/**'
-      - 'scripts/**'
-      - '.github/workflows/supabase.yml'
+      - "database/**"
+      - "scripts/**"
+      - ".github/workflows/supabase.yml"
   workflow_dispatch:
 
 permissions:
