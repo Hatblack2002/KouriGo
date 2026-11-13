@@ -5,7 +5,7 @@
 
 ![KouriGo — identidad visual provisional](assets/brand/kourigo-logo.svg)
 
-**Estado:** definición del producto / MVP por construir.  
+**Estado:** Fase 0 (definición del producto) completada; Fase 1 (base técnica) en construcción, con CI verificable en GitHub Actions.  
 **Repositorio:** https://github.com/Hatblack2002/KouriGo  
 **Mercado inicial previsto:** Haití.  
 **Idioma de trabajo de este documento:** español. La interfaz deberá contemplar criollo haitiano (kreyòl ayisyen) y francés desde su diseño inicial.
@@ -346,6 +346,8 @@ La arquitectura debe ser modular, segura y económica de operar. La siguiente es
     └── .env.example
 
 No es obligatorio crear todas las carpetas vacías al inicio. Cada módulo debe aparecer cuando tenga implementación real.
+
+**Estado de la base técnica (2026-11-13):** el repositorio usa un monorepo npm workspaces en TypeScript estricto. Las reglas de negocio de pedidos viven en `packages/domain` y se aplican también en la base de datos (triggers + RLS) según `database/migrations/`. El pipeline de GitHub Actions (`.github/workflows/ci.yml`) ejecuta verificación de formato, lint, análisis de tipos, pruebas unitarias, pruebas de autorización contra PostgreSQL 16 + PostGIS y build. La decisión de herramientas está registrada en `docs/decisions/ADR-0002-herramientas-base.md` y el plan por etapas en `docs/product/plan-etapas.md`.
 
 ### Separación por dominios
 
