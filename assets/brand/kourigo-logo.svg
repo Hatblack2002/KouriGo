@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="220" viewBox="0 0 900 220" role="img" aria-labelledby="title desc">
+  <title id="title">KouriGo</title>
+  <desc id="desc">Wordmark KouriGo with a green speedometer-inspired G and needle.</desc>
+  <g fill="#15191F" font-family="Arial, Helvetica, sans-serif" font-size="132" font-style="italic" font-weight="800" letter-spacing="-7">
+    <text x="42" y="157">Kouri</text>
+  </g>
+  <g fill="none" stroke="#32C653" stroke-width="17" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 613 73 A 56 56 0 1 0 613 157"/>
+    <path d="M 572 115 H 625"/>
+  </g>
+  <path d="M 570 115 L 618 68" fill="none" stroke="#15191F" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="570" cy="115" r="8" fill="#32C653"/>
+  <circle cx="704" cy="115" r="48" fill="none" stroke="#32C653" stroke-width="17"/>
+</svg>
