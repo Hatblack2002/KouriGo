@@ -102,7 +102,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           for FUNCION in transicion-pedido despachar-pedido decision-verificacion documento-firmado; do
-            supabase functions deploy "$FUNCION" --project-ref ouowxtpntqptsajqgjud
+            supabase functions deploy "$FUNCION" --project-ref ouowxtpntqptsajqgjud --yes
           done
 
       - name: Verificar que las funciones responden en el runtime
