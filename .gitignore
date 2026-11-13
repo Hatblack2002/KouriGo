@@ -12,3 +12,7 @@ coverage/
 # Sistema y registros
 *.log
 .DS_Store
+
+# Artefactos locales de Expo
+.expo/
+apps/mobile/dist/

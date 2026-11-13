@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "KouriGo",
+    "slug": "kourigo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic"
+  }
+}

@@ -1,0 +1,100 @@
+# KouriGo — Etapa 4: aplicación móvil Expo. Compila el bundle REAL de la app
+# (expo export produce el bundle Hermes de Android sin emulador ni coste) y
+# ejecuta las pruebas E2E contra el proyecto REAL de Supabase con usuarios
+# reales creados por la Admin API. Sin secretos, la prueba E2E se omite sola;
+# el job de build nunca necesita secretos. Ver
+# docs/decisions/ADR-0006-app-movil-expo.md.
+
+name: "App móvil (Expo)"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - ".github/workflows/app-movil.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-movil
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: "Build del bundle (expo export)"
+    runs-on: ubuntu-latest
+    env:
+      EXPO_NO_TELEMETRY: "1"
+      CI: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalación reproducible
+        run: npm ci
+
+      # El bundle móvil importa @kourigo/domain desde dist/.
+      - name: Compilar paquetes internos
+        run: npm run build
+
+      - name: "Compilar el bundle de la app (Android/Hermes, sin emulador)"
+        env:
+          # Valores de marcador para la compilación: el bundle resultante es
+          # evidencia del build real, no un artefacto operativo. La app exige
+          # la configuración pública real en el arranque.
+          EXPO_PUBLIC_SUPABASE_URL: "https://marcador-de-compilacion.supabase.co"
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: "marcador-de-compilacion-solo-build"
+        run: npm run export:android --workspace @kourigo/mobile
+
+      - name: Subir el bundle como evidencia
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-app-movil
+          path: apps/mobile/dist
+          retention-days: 7
+
+  pruebas-e2e:
+    name: "Pruebas E2E contra el proyecto real de Supabase"
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalación reproducible
+        run: npm ci
+
+      - name: Compilar paquetes internos
+        run: npm run build
+
+      - name: Verificar que el proyecto de Supabase responde (salud real)
+        run: |
+          CODIGO=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 \
+            "${SUPABASE_URL}/auth/v1/health" || true)
+          echo "Salud de Supabase Auth: HTTP ${CODIGO}"
+          if [ "$CODIGO" != "200" ]; then
+            echo "El proyecto de Supabase no responde en /auth/v1/health" >&2
+            exit 1
+          fi
+
+      - name: "Pruebas E2E: autenticación real y creación de pedidos"
+        run: npm test --workspace @kourigo/mobile

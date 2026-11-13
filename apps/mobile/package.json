@@ -1,0 +1,23 @@
+{
+  "name": "@kourigo/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "export:android": "expo export --platform android --output-dir dist"
+  },
+  "dependencies": {
+    "@kourigo/domain": "*",
+    "@react-native-async-storage/async-storage": "~2.2.0",
+    "@supabase/supabase-js": "^2.119.0",
+    "expo": "~58.0.25",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "vitest": "^3.0.5"
+  }
+}
