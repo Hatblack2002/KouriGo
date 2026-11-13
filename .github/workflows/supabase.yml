@@ -91,3 +91,30 @@ jobs:
 
       - name: Pruebas de integración de Edge Functions contra el proyecto real
         run: deno test --allow-all supabase/functions/_pruebas/integracion.test.ts
+
+      - name: Instalar CLI de Supabase
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Desplegar las funciones al runtime de Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          for FUNCION in transicion-pedido despachar-pedido decision-verificacion documento-firmado; do
+            supabase functions deploy "$FUNCION" --project-ref ouowxtpntqptsajqgjud
+          done
+
+      - name: Verificar que las funciones responden en el runtime
+        run: |
+          for FUNCION in transicion-pedido despachar-pedido decision-verificacion documento-firmado; do
+            CODIGO=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 \
+              -X POST "${SUPABASE_URL}/functions/v1/${FUNCION}" \
+              -H "Content-Type: application/json" -d '{}' || true)
+            echo "${FUNCION}: HTTP ${CODIGO}"
+            if [ "$CODIGO" != "401" ]; then
+              echo "La función ${FUNCION} no respondió 401 (sin token) en el runtime" >&2
+              exit 1
+            fi
+          done
+          echo "Las 4 funciones están desplegadas y exigen JWT en el runtime."
