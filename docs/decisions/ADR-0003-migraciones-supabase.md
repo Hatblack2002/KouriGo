@@ -19,7 +19,7 @@ La Etapa 1.5 exige aplicar las migraciones versionadas al proyecto real de Supab
 3. El runner `scripts/verificar_supabase.sh` verifica contra el proyecto real, sin emulación de Auth:
    - `database/supabase/verificacion_esquema.sql`: aserciones de solo lectura (PostGIS, tablas, RLS, funciones, triggers, CHECK de los 10 estados, políticas clave de `orders`, `auth.uid()`, grants a `authenticated`, registro de migraciones).
    - Las pruebas de `database/tests/` (que ya abren `BEGIN` y cierran con `ROLLBACK`), precedidas por `database/supabase/preparacion_pruebas.sql`, que crea la función de aserción `public.afirmar()`. El runner la elimina al terminar: **no se dejan fixtures ni objetos de prueba en el proyecto real**.
-4. El workflow `.github/workflows/supabase.yml` ejecuta ambos runners con el secreto `DATABASE_URL`, en modo **manual (`workflow_dispatch`)** hasta que la credencial esté verificada; entonces se habilitará también en push a `main`.
+4. El workflow `.github/workflows/supabase.yml` ejecuta ambos runners con el secreto `DATABASE_URL`, en modo **manual (`workflow_dispatch`)** hasta que la credencial esté verificada. Verificada la credencial el 2026-11-13 (SCRAM-SHA-256, firma del servidor comprobada), se habilitó también el disparo por push a `main`, con filtro de rutas (`database/**`, `scripts/**` y el propio workflow) para no reejecutar en commits de documentación.
 5. La `DATABASE_URL` se construye con `sslmode=disable` (el pooler rechaza la negociación SSL observada) y el usuario `postgres.<proyecto>`. La credencial no viaja en claro (SCRAM).
 
 ## Consecuencias
@@ -32,6 +32,14 @@ La Etapa 1.5 exige aplicar las migraciones versionadas al proyecto real de Supab
 - La sesión contra el pooler va sin cifrado TLS mientras la instancia no negocie SSL: contenido de consultas observable en tránsito. La credencial no lo está (SCRAM). Revisar en cuanto Supabase ofrezca TLS en el pooler y pasar a `sslmode=require`.
 - Si una migración pierde idempotencia, un reejecutado tras fallo parcial podría chocar: mantener el estilo `IF NOT EXISTS` / `IF EXISTS` de la migración 0001.
 - El primer run real puede exigir ajustes (permisos de `postgres` sobre `auth.users` para fixtures): los errores quedarán visibles en el log del job.
+
+## Verificación inicial contra el proyecto real (2026-11-13)
+
+- La contraseña de la base de datos se verificó con un cliente SCRAM-SHA-256 propio (stdlib, sin instalar dependencias) contra el pooler session mode: la firma `v=` del servidor confirmó la credencial antes de configurar el secreto.
+- Secretos configurados en el repositorio: `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+- Run 43355248676 (primer run real): migraciones aplicadas con éxito; la verificación falló porque exigía las funciones auxiliares con firma vacía (`es_participante_pedido()`), y la migración la define con argumento (`es_participante_pedido(id_pedido uuid)`). Corregido en commit 5bbd74a usando `to_regproc` (búsqueda por nombre).
+- Run 43355644288 (verificación completa): todas las aserciones pasaron — PostGIS, 15 tablas, RLS habilitado, funciones auxiliares, triggers de integridad, CHECK de los 10 estados, políticas clave de `orders`, `auth.uid()`, grants a `authenticated` y `schema_migrations` con 1 migración; además corrieron las pruebas de RLS (cliente y repartidor) y de transiciones contra el proyecto real con `ROLLBACK`.
+- La reejecución confirmó la idempotencia: la migración ya registrada se omite («0001_esquema_inicial ya aplicada, se omite»).
 
 ## Alternativas consideradas
 

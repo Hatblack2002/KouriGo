@@ -1,13 +1,19 @@
 # KouriGo — Etapa 1.5: migraciones y verificación contra el proyecto real de
-# Supabase. Se dispara manualmente (workflow_dispatch) mientras el secreto
-# DATABASE_URL no esté verificado; cuando lo esté, se añade el disparo por
-# push en main. La conexión se hace con el pooler IPv4 de Supabase (los
-# runners de GitHub Actions no tienen IPv6 para la conexión directa).
+# Supabase. Se dispara en cada push a main que toque la base de datos o sus
+# runners, y manualmente (workflow_dispatch). La conexión se hace con el
+# pooler IPv4 de Supabase (los runners de GitHub Actions no tienen IPv6 para
+# la conexión directa).
 # Ver docs/decisions/ADR-0003-migraciones-supabase.md.
 
 name: Supabase (proyecto real)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'database/**'
+      - 'scripts/**'
+      - '.github/workflows/supabase.yml'
   workflow_dispatch:
 
 permissions:
