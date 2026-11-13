@@ -212,7 +212,7 @@ export function App() {
           <button onClick={() => void salir()}>{t("cerrar_sesion")}</button>
         </span>
       </header>
-      <main className="contenido">
+      <main className={`contenido ${vista.pantalla === "expediente" ? "contenido-expediente" : ""}`}>
         {vista.pantalla === "resumen" ? <PantallaResumen cliente={cliente} /> : null}
         {vista.pantalla === "pedidos" ? (
           <PantallaPedidos
