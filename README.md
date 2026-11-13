@@ -73,7 +73,7 @@ El cliente solo podrá consultar sus propios datos y pedidos. No podrá acceder 
 
 ### 2.2 Repartidor
 
-El repartidor tendrá una cuenta separada, sujeta a aprobación administrativa. Podrá:
+El repartidor tendrá una cuenta separada, sujeta a aprobación administrativa. Debe presentar cédula nacional haitiana (anverso y reverso, cuando corresponda) o pasaporte, selfie, teléfono verificado y datos de residencia/operación. La revisión puede ser documental, por videoconferencia o presencial. El registro de documentos no equivale a aprobación ni demuestra por sí solo autenticidad oficial. Hasta la aprobación explícita, el servidor debe denegar aceptación de pedidos, acceso a pedidos operativos y retiros/liquidaciones. Véase `docs/operations/courier-identity-verification.md`. Podrá:
 
 - Completar su perfil y datos de contacto.
 - Enviar la información requerida para su verificación.
@@ -311,7 +311,7 @@ La arquitectura debe ser modular, segura y económica de operar. La siguiente es
 - **Notificaciones:** servicio push con registro de tokens y preferencias.
 - **Almacenamiento:** archivos privados para documentos operativos y recibos; imágenes públicas solo cuando corresponda.
 
-Se puede evaluar Supabase como plataforma inicial de PostgreSQL, autenticación y funciones de servidor, siempre que las políticas de acceso y los costes se revisen. No se debe colocar lógica privilegiada en el cliente.
+**Decisión aprobada: Supabase es el backend principal de KouriGo.** PostgreSQL será la base de datos central; PostGIS cubrirá consultas geoespaciales; Supabase Auth gestionará identidad y sesiones; Supabase Storage alojará documentos privados; y Edge Functions ejecutarán operaciones privilegiadas del servidor. Firebase queda fuera de la arquitectura inicial: no introducir Firebase Auth, Firestore ni Firebase Storage en paralelo. Cloudinary se reserva exclusivamente para recursos visuales públicos (por ejemplo, imágenes de comercios y productos), nunca para cédulas, pasaportes, selfies de verificación ni otros documentos sensibles. La especificación obligatoria está en `docs/architecture/backend-supabase.md`.
 
 ### Organización sugerida del repositorio
 
@@ -398,8 +398,10 @@ La consola administrativa no es una sección pública. Su protección debe exist
 
 Requisitos obligatorios:
 
-1. El registro público solo crea cuentas de cliente.
-2. Los roles de repartidor y administrador se asignan mediante flujos autorizados del servidor.
+1. El registro público de cliente utiliza Supabase Auth con Google Sign-In.
+2. La cuenta de repartidor se crea mediante un flujo separado y queda bloqueada para operar hasta completar la verificación documental y recibir aprobación administrativa; el detalle obligatorio está en `docs/operations/courier-identity-verification.md`.
+3. Las cuentas administrativas utilizan Microsoft Sign-In y deben ser creadas/invitadas o autorizadas previamente por el administrador principal; nunca existe registro público de administradores.
+4. Los roles de repartidor y administrador se asignan mediante flujos autorizados del servidor.
 3. Las rutas administrativas exigen sesión válida y permiso específico.
 4. Cada operación sensible vuelve a comprobar permisos en el servidor.
 5. Las políticas de base de datos deben impedir lectura o escritura entre usuarios no autorizados.
