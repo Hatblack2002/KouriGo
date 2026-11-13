@@ -161,9 +161,18 @@ export async function crearPedidoBorrador(
     return { tipo: "error", mensaje: `${erroresDominio[0] ?? "Datos inválidos"}` };
   }
 
+  // El cliente dueño del pedido sale de la sesión real (RLS: client_id =
+  // auth.uid()); PostgREST no lo deduce solo.
+  const { data: datosSesion } = await cliente.auth.getSession();
+  const usuarioId = datosSesion.session?.user.id;
+  if (typeof usuarioId !== "string" || usuarioId.length === 0) {
+    return { tipo: "error", mensaje: "La sesión no está activa: vuelve a iniciar sesión." };
+  }
+
   const insertado = await cliente
     .from("orders")
     .insert({
+      client_id: usuarioId,
       order_type: datos.tipo,
       status: "draft",
       pickup_address_text: datos.recogidaTexto.trim(),

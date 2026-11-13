@@ -60,7 +60,7 @@ describe("validarFormularioPedido", () => {
     expect(validarFormularioPedido({ ...datosValidos(), recogidaTexto: "  " })).toContain(
       "err_recogida",
     );
-    expect(validarFormularioPedido({ ...datosValidos(), destinoTexto: "corto" })).toContain(
+    expect(validarFormularioPedido({ ...datosValidos(), destinoTexto: "abcd" })).toContain(
       "err_destino",
     );
   });
@@ -120,7 +120,7 @@ describe("consistencia con @kourigo/domain", () => {
   it("si el dominio rechazaría, la app tampoco debe dejar enviar", () => {
     const sinItems = { ...datosValidos(), items: [] };
     expect(validarFormularioPedido(sinItems).length).toBeGreaterThan(0);
-    const direccionCorta = { ...datosValidos(), recogidaTexto: "corto" };
+    const direccionCorta = { ...datosValidos(), recogidaTexto: "abcd" };
     expect(validarFormularioPedido(direccionCorta).length).toBeGreaterThan(0);
   });
 });
