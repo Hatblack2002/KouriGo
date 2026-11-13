@@ -51,13 +51,28 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: "Diagnóstico de red y del secreto (host y salud del proyecto)"
+      - name: "Resolver el host del proyecto (DNS del runner no cubre *.supabase.co)"
         run: |
-          echo "Longitud de SUPABASE_URL: ${#SUPABASE_URL}"
-          echo "getent hosts:"; getent hosts "${SUPABASE_URL#https://}" || echo "(getent sin respuesta)"
-          curl -sS -o /dev/null -w "curl health: %{http_code}\n" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            "${SUPABASE_URL}/auth/v1/health" || echo "(curl falló)"
+          HOSTPROYECTO="${SUPABASE_URL#https://}"
+          if getent hosts "$HOSTPROYECTO" >/dev/null; then
+            echo "El host ya resuelve: $(getent hosts "$HOSTPROYECTO" | head -1)"
+            exit 0
+          fi
+          IP=$(curl -sS "https://1.1.1.1/dns-query?name=${HOSTPROYECTO}&type=A" \
+            -H "accept: application/dns-json" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print([a['data'] for a in d.get('Answer', []) if a['type']==1][0])" \
+            || true)
+          if [ -z "${IP:-}" ]; then
+            IP=$(curl -sS "https://dns.google/resolve?name=${HOSTPROYECTO}&type=A" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print([a['data'] for a in d.get('Answer', []) if a['type']==1][0])")
+          fi
+          if ! echo "$IP" | rg -q '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+            echo "No se pudo resolver el host del proyecto por DoH" >&2
+            exit 1
+          fi
+          echo "Fijando ${HOSTPROYECTO} -> ${IP} en /etc/hosts"
+          sudo sh -c "printf '%s %s\n' '${IP}' '${HOSTPROYECTO}' >> /etc/hosts"
+          getent hosts "$HOSTPROYECTO"
 
       - name: Verificación de tipos de las Edge Functions
         run: deno check supabase/functions/
