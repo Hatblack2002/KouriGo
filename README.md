@@ -73,7 +73,7 @@ El cliente solo podrá consultar sus propios datos y pedidos. No podrá acceder 
 
 ### 2.2 Repartidor
 
-El repartidor tendrá una cuenta separada, sujeta a aprobación administrativa. Debe presentar cédula nacional haitiana (anverso y reverso, cuando corresponda) o pasaporte, selfie, teléfono verificado y datos de residencia/operación. La revisión puede ser documental, por videoconferencia o presencial. El registro de documentos no equivale a aprobación ni demuestra por sí solo autenticidad oficial. Hasta la aprobación explícita, el servidor debe denegar aceptación de pedidos, acceso a pedidos operativos y retiros/liquidaciones. Véase `docs/operations/courier-identity-verification.md`. Podrá:
+El repartidor tendrá una cuenta separada, sujeta a aprobación administrativa. Debe presentar cédula nacional haitiana (anverso y reverso, cuando corresponda) o pasaporte, selfie, teléfono verificado, datos de residencia/operación y **certificat de bonnes vie et mœurs**. También debe presentar **permis de conduire** cuando vaya a realizar entregas con un vehículo para el que la normativa exija licencia; la operación motorizada no se habilita hasta revisar y aprobar ese permiso. La lista y el flujo de revisión están definidos en `docs/operations/courier-identity-verification.md`. La revisión puede ser documental, por videoconferencia o presencial. El registro de documentos no equivale a aprobación ni demuestra por sí solo autenticidad oficial. Hasta la aprobación explícita, el servidor debe denegar aceptación de pedidos, acceso a pedidos operativos y retiros/liquidaciones. Véase `docs/operations/courier-identity-verification.md`. Podrá:
 
 - Completar su perfil y datos de contacto.
 - Enviar la información requerida para su verificación.
