@@ -4,6 +4,9 @@
     "slug": "kourigo",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic"
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.kourigo.app"
+    }
   }
 }

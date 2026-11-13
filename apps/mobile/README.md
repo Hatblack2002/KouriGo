@@ -13,7 +13,7 @@ Aplicación cliente en **React Native + Expo + TypeScript** dentro del monorepo 
 
 ## Qué NO incluye (todavía)
 
-- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, modo repartidor, consola administrativa, OAuth Google/Microsoft y binaries de distribución (APK/IPA con EAS Build o prebuild).
+- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, modo repartidor, consola administrativa, OAuth Google/Microsoft, iPhone (sin ruta gratuita: TestFlight exige la Apple Developer Program de pago) y publicación en tiendas (el APK de prueba ya se compila en Actions, ver "APK de prueba (Android)").
 
 ## Configuración pública (sin claves privilegiadas)
 
@@ -26,12 +26,23 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<clave anon del proyecto>
 
 Son valores públicos por diseño: el acceso se controla con RLS y Edge Functions. La clave service-role **nunca** entra en la app, el bundle ni el repositorio. Sin estas variables, la app arranca mostrando un error de configuración claro (no inventa datos).
 
+## APK de prueba (Android)
+
+El workflow **`APK de prueba (Android)`** compila la app real dentro de GitHub Actions (`expo prebuild` + `gradlew assembleRelease`, sin emulador, sin EAS Build y sin coste) y publica el APK instalable en un release prerelease con etiqueta fija **`prueba-apk`**:
+
+- **Descarga (enlace estable):** `https://github.com/Hatblack2002/KouriGo/releases/download/prueba-apk/KouriGo-prueba.apk` — cada build lo reemplaza. También queda como artefacto `apk-prueba-android` en cada ejecución del workflow.
+- **Instalación:** abrir el enlace en un teléfono Android, descargar `KouriGo-prueba.apk` y aceptar la instalación de apps de origen desconocido cuando el sistema lo pida (Ajustes → Seguridad → Instalar apps desconocidas). No requiere tienda ni cuenta.
+- **Firma:** el prebuild de Expo firma el release con su clave de prueba (`signingConfigs.debug`, plantilla oficial del SDK 58): instalable en cualquier teléfono, pero no válido para tiendas.
+- **Configuración real:** el bundle Hermes lleva la URL y la clave anon reales de Supabase; el workflow verifica el anfitrión dentro del APK y la firma con `apksigner` antes de publicar, y se niega a publicar si algo falta.
+- **Identificador:** `com.kourigo.app` (app.json `android.package`); actualizar el teléfono es instalar el nuevo APK encima.
+
 ## Verificación (GitHub Actions)
 
 - **Workflow `CI`** — job `calidad`: formato (Prettier), lint (ESLint), análisis de tipos y pruebas unitarias de la app con Vitest (diccionarios, formato, validación del formulario, cliente de funciones, almacenamiento en memoria).
 - **Workflow `App móvil (Expo)`**:
   - `build`: compila los paquetes internos y produce el **bundle Hermes real** con `expo export --platform android` (sin emulador y sin coste); el bundle se sube como artefacto de evidencia.
   - `pruebas-e2e`: ejecuta `apps/mobile/tests/e2e/proyecto-real.test.ts` contra el **proyecto real de Supabase** con secretos: usuarios reales por la Admin API, sesión con el mismo servicio de la app, pedido creado por RLS, transiciones por la función desplegada, aislamiento entre clientes y rechazos por rol/estado; la limpieza elimina usuarios y filas y falla si deja residuos. Sin secretos, la E2E se omite sola.
+- **Workflow `APK de prueba (Android)`**: genera el proyecto Android con `expo prebuild`, compila el APK instalable con `gradlew assembleRelease` (clave de prueba de la plantilla), comprueba firma y configuración real dentro del bundle, y lo publica en el release `prueba-apk` (sección "APK de prueba (Android)").
 
 ## Estructura
 
@@ -39,7 +50,7 @@ Son valores públicos por diseño: el acceso se controla con RLS y Edge Function
 apps/mobile/
 ├── App.tsx                      # raíz: sesión + navegación por estado + idioma
 ├── index.ts                     # registerRootComponent
-├── app.json / babel.config.js   # configuración Expo (SDK 58)
+├── app.json / babel.config.js   # configuración Expo (SDK 58; android.package com.kourigo.app)
 ├── src/
 │   ├── configuracion.ts         # EXPO_PUBLIC_* (públicas por diseño)
 │   ├── almacen-async-storage.ts # sesión persistente en el dispositivo
@@ -51,6 +62,7 @@ apps/mobile/
 │   ├── formato.ts               # importes (unidad mínima) y fechas localizadas
 │   ├── components.tsx           # componentes reutilizables (verde/grafito, README sección 8)
 │   └── pantalla-*.tsx           # autenticación, lista, nuevo pedido, detalle
+├── android/                     # proyecto Android generado (expo prebuild, gitignore, solo en CI)
 └── tests/
     ├── *.test.ts                # unitarias (Vitest)
     └── e2e/proyecto-real.test.ts # E2E contra el proyecto real (omitida sin secretos)

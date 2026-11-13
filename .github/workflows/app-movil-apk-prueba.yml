@@ -1,0 +1,140 @@
+# KouriGo — APK de prueba (Android) para el dueño. Compila la app móvil REAL
+# dentro de GitHub Actions con expo prebuild + gradlew assembleRelease: sin
+# emulador, sin EAS Build y sin coste (Actions es gratuito en repos públicos).
+# El APK se firma con el keystore de prueba que genera el propio prebuild de
+# Expo (la plantilla oficial de SDK 58 firma el release con
+# signingConfigs.debug) y es instalable en cualquier teléfono Android. El
+# bundle Hermes lleva la configuración pública REAL de Supabase (URL y clave
+# anon, públicas por diseño: los datos los protege RLS según ADR-0001); el
+# workflow se niega a publicar un APK que no la lleve. El resultado se
+# publica en un release prerelease con etiqueta fija para que el dueño tenga
+# un enlace de descarga estable. Ver apps/mobile/README.md (sección
+# "APK de prueba (Android)").
+
+name: "APK de prueba (Android)"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/**"
+      - ".github/workflows/app-movil-apk-prueba.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-prueba
+  cancel-in-progress: false
+
+env:
+  EXPO_NO_TELEMETRY: "1"
+  CI: "1"
+
+jobs:
+  apk:
+    name: "Compilar APK instalable con la configuración real"
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Configuración pública real (públicas por diseño): el prebuild las deja
+      # en el proyecto Android y la tarea bundleReleaseJsAndAssets las graba
+      # dentro del bundle Hermes.
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalación reproducible
+        run: npm ci
+
+      # El bundle móvil importa @kourigo/domain desde dist/.
+      - name: Compilar paquetes internos
+        run: npm run build
+
+      - name: Configurar Java 17 (temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Aceptar licencias del SDK de Android
+        run: |
+          if [ -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          fi
+
+      - name: "Generar el proyecto Android (expo prebuild)"
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: "Compilar el APK de prueba (release, clave de prueba de la plantilla)"
+        working-directory: apps/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: "Comprobar que el APK existe, está firmado y lleva la configuración real"
+        run: |
+          APK="apps/mobile/android/app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK" ]; then
+            echo "No se generó app-release.apk:" >&2
+            ls -R apps/mobile/android/app/build/outputs/apk 2>/dev/null || true
+            exit 1
+          fi
+          ANFITRION=$(printf "%s" "$EXPO_PUBLIC_SUPABASE_URL" | sed -E "s#https?://##")
+          echo "Comprobando el anfitrión real: ${ANFITRION}"
+          unzip -p "$APK" assets/index.android.bundle > /tmp/bundle-hermes
+          if [ ! -s /tmp/bundle-hermes ]; then
+            echo "El APK no lleva el bundle Hermes (assets/index.android.bundle)" >&2
+            unzip -l "$APK" | grep assets || true
+            exit 1
+          fi
+          if ! grep -aqF "$ANFITRION" /tmp/bundle-hermes; then
+            echo "El bundle no lleva la URL real de Supabase: publicación abortada" >&2
+            exit 1
+          fi
+          FIRMADOR=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f 2>/dev/null | sort | tail -n 1)
+          if [ -n "$FIRMADOR" ]; then
+            "$FIRMADOR" verify "$APK" && echo "APK firmado correctamente (clave de prueba)"
+          fi
+          echo "Tamaño del APK: $(du -h "$APK" | cut -f1)"
+
+      - name: Guardar el APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-prueba-android
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: "Publicar el release de prueba (enlace estable para el dueño)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK="apps/mobile/android/app/build/outputs/apk/release/app-release.apk"
+          cp "$APK" KouriGo-prueba.apk
+          NOTAS=$(printf "%s\n\n%s\n\n%s" \
+            "APK de prueba de la app móvil KouriGo, compilado en GitHub Actions desde el commit ${GITHUB_SHA::7}." \
+            "Lleva la configuración pública REAL de Supabase (RLS protege los datos; sin datos simulados)." \
+            "Firmado con la clave de prueba de la plantilla de Expo: solo para pruebas internas, no para tiendas.")
+          if gh release view "prueba-apk" > /dev/null 2>&1; then
+            gh release upload "prueba-apk" KouriGo-prueba.apk --clobber
+            gh release edit "prueba-apk" --title "KouriGo · APK de prueba (Android)" --notes "$NOTAS"
+          else
+            gh release create "prueba-apk" KouriGo-prueba.apk \
+              --title "KouriGo · APK de prueba (Android)" \
+              --notes "$NOTAS" \
+              --prerelease
+          fi
+          echo "Enlace de descarga: https://github.com/${GITHUB_REPOSITORY}/releases/download/prueba-apk/KouriGo-prueba.apk"

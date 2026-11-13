@@ -16,3 +16,5 @@ coverage/
 # Artefactos locales de Expo
 .expo/
 apps/mobile/dist/
+apps/mobile/android/
+apps/mobile/ios/
