@@ -27,7 +27,7 @@ describe("leerConfiguracionPublica", () => {
   it("falla cuando falta solo una de las dos variables", () => {
     ENTORNO.VITE_SUPABASE_URL = "https://ejemplo.supabase.co";
     expect(() => leerConfiguracionPublica()).toThrow(ConfiguracionFaltanteError);
-    ENTORNO.VITE_SUPABASE_URL = undefined;
+    delete ENTORNO.VITE_SUPABASE_URL;
     ENTORNO.VITE_SUPABASE_ANON_KEY = "clave";
     expect(() => leerConfiguracionPublica()).toThrow(ConfiguracionFaltanteError);
   });

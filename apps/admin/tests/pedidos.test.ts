@@ -38,11 +38,15 @@ describe("transicionesAdminDisponibles", () => {
     expect(opciones.every((o) => !o.correccion)).toBe(true);
   });
 
-  it("desde offered permite offered->pending y offered->cancelled", () => {
-    const destinos = transicionesAdminDisponibles("offered")
-      .map((o) => o.destino)
-      .sort();
-    expect(destinos).toEqual(["cancelled", "pending"]);
+  it("desde offered permite aceptar por el repartidor, devolver y cancelar", () => {
+    const opciones = transicionesAdminDisponibles("offered");
+    const porDestino = new Map(opciones.map((o) => [o.destino, o]));
+    expect([...porDestino.keys()].sort()).toEqual(["accepted", "cancelled", "pending"]);
+    // La matriz administrativa hereda los pares de los demás actores: aceptar
+    // y devolver a la cola no son correcciones; cancelar la oferta sí.
+    expect(porDestino.get("accepted")?.correccion).toBe(false);
+    expect(porDestino.get("pending")?.correccion).toBe(false);
+    expect(porDestino.get("cancelled")?.correccion).toBe(false);
   });
 
   it("las cancelaciones justificadas son correcciones con motivo", () => {

@@ -183,6 +183,12 @@ d("E2E consola administrativa contra el proyecto real", () => {
       .from("courier_profiles")
       .insert({ user_id: prueba.ids.repartidorId, account_active: true });
     expect(ePerfilCourier, `courier_profiles: ${String(ePerfilCourier)}`).toBeNull();
+    const { error: ePerfiles } = await servicio.from("profiles").insert([
+      { id: prueba.ids.adminId, full_name: "Administradora de Prueba" },
+      { id: prueba.ids.clienteId, full_name: "Cliente de Prueba" },
+      { id: prueba.ids.repartidorId, full_name: "Repartidor de Prueba" },
+    ]);
+    expect(ePerfiles, `profiles: ${String(ePerfiles)}`).toBeNull();
 
     // Expediente en borrador + documento real en el bucket privado.
     const { data: casos, error: eCaso } = await servicio
@@ -257,14 +263,17 @@ d("E2E consola administrativa contra el proyecto real", () => {
     prueba.sesiones.cliente = sesionCliente.tipo === "ok" ? sesionCliente.sesion : null;
   });
 
-  it("la consola autentica al administrador y comprueba su rol real", async () => {
-    expect(prueba.sesiones.admin).not.toBeNull();
-    const rol = await leerRolAdministrador(prueba.clientes.admin);
-    expect(rol.tipo).toBe("ok");
-    expect(rol.tipo === "ok" && rol.administrador).toBe(true);
-    const nombre = await leerNombrePropio(prueba.clientes.admin);
-    expect(nombre).toBeNull(); // sin perfil creado: la consola lo muestra como vacío
-  });
+  it(
+    "la consola autentica al administrador y comprueba su rol real",
+    async () => {
+      expect(prueba.sesiones.admin).not.toBeNull();
+      const rol = await leerRolAdministrador(prueba.clientes.admin);
+      expect(rol.tipo).toBe("ok");
+      expect(rol.tipo === "ok" && rol.administrador).toBe(true);
+      const nombre = await leerNombrePropio(prueba.clientes.admin);
+      expect(nombre).toBe("Administradora de Prueba");
+    },
+  );
 
   it(
     "una sesión sin rol administrativo queda bloqueada y no puede escalar privilegios",
@@ -301,6 +310,9 @@ d("E2E consola administrativa contra el proyecto real", () => {
     expect(perfiles.error).toBeNull();
     const ids = perfiles.filas.map((p) => p.id);
     expect(ids).toContain(prueba.ids.repartidorId);
+    expect(ids).toContain(prueba.ids.clienteId);
+    const courier = perfiles.filas.find((p) => p.id === prueba.ids.repartidorId);
+    expect(courier?.full_name).toBe("Repartidor de Prueba");
   });
 
   it("el administrador revisa y aprueba el expediente real", async () => {

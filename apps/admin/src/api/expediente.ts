@@ -174,14 +174,18 @@ const DECISION_POR_DESTINO: Record<EstadoExpediente, string> = {
 
 export function decisionesAdminDisponibles(estadoActual: string): DecesionOpcion[] {
   const opciones: DecesionOpcion[] = [];
+  // La matriz administrativa contiene pares repetidos (el espejo del
+  // sistema duplica approved -> expired): una decisión por destino.
+  const vistas = new Set<string>();
   for (const transicion of TRANSICIONES_EXPEDIENTE_POR_ACTOR.administrador) {
-    if (transicion.de !== estadoActual) {
+    if (transicion.de !== estadoActual || vistas.has(transicion.a)) {
       continue;
     }
     const decision = DECISION_POR_DESTINO[transicion.a];
     if (decision === undefined) {
       continue;
     }
+    vistas.add(transicion.a);
     opciones.push({
       decision,
       destino: transicion.a,
