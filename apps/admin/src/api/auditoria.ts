@@ -48,5 +48,5 @@ export async function listarAuditoria(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaAuditoria[], error: null };
+  return { filas: (data ?? []) as unknown as FilaAuditoria[], error: null };
 }

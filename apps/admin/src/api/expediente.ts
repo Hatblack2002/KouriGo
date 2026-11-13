@@ -59,7 +59,7 @@ export interface FilaEventoExpediente {
 }
 
 export interface DecesionOpcion {
-  readonly decision: string;
+  readonly decision: DecisionExpediente;
   readonly destino: EstadoExpediente;
   readonly requiereMotivo: boolean;
   readonly requiereMetodo: boolean;
@@ -97,7 +97,7 @@ export async function listarCasos(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaCaso[], error: null };
+  return { filas: (data ?? []) as unknown as FilaCaso[], error: null };
 }
 
 export async function obtenerCaso(
@@ -115,7 +115,7 @@ export async function obtenerCaso(
   if (error !== null) {
     return { caso: null, error: error.message };
   }
-  return { caso: (data as FilaCaso | null) ?? null, error: null };
+  return { caso: (data as unknown as FilaCaso | null) ?? null, error: null };
 }
 
 export async function listarDocumentos(
@@ -133,7 +133,7 @@ export async function listarDocumentos(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaDocumento[], error: null };
+  return { filas: (data ?? []) as unknown as FilaDocumento[], error: null };
 }
 
 export async function listarEventosCaso(
@@ -148,7 +148,7 @@ export async function listarEventosCaso(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaEventoExpediente[], error: null };
+  return { filas: (data ?? []) as unknown as FilaEventoExpediente[], error: null };
 }
 
 /**
@@ -161,7 +161,7 @@ export async function listarEventosCaso(
  * suspender→suspended, solicitar_reverificacion→reverification_required,
  * expirar→expired. Función pura, probada sin red.
  */
-const DECISION_POR_DESTINO: Record<EstadoExpediente, string> = {
+const DECISION_POR_DESTINO: Partial<Record<EstadoExpediente, DecisionExpediente>> = {
   under_review: "iniciar_revision",
   needs_information: "pedir_informacion",
   verification_scheduled: "programar_verificacion",

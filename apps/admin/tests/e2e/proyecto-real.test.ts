@@ -601,9 +601,13 @@ d("E2E consola administrativa contra el proyecto real", () => {
         perPage: 200,
         page: 1,
       });
-      for (const usuario of restosUsuarios.users) {
-        if (usuario.email !== null && Object.values(correos).includes(usuario.email)) {
-          fallos.push(`quedó el usuario ${usuario.email}`);
+      if (restosUsuarios.error !== null) {
+        fallos.push(`listUsers para residuos: ${restosUsuarios.error.message}`);
+      } else {
+        for (const usuario of restosUsuarios.data.users) {
+          if (usuario.email !== null && Object.values(correos).includes(usuario.email)) {
+            fallos.push(`quedó el usuario ${usuario.email}`);
+          }
         }
       }
       if (prueba.ids.pedidoId.length > 0) {

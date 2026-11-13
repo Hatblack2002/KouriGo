@@ -32,7 +32,7 @@ export async function listarPerfiles(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaPerfil[], error: null };
+  return { filas: (data ?? []) as unknown as FilaPerfil[], error: null };
 }
 
 /**
@@ -52,5 +52,5 @@ export async function listarRepartidoresOperativos(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaCourierPerfil[], error: null };
+  return { filas: (data ?? []) as unknown as FilaCourierPerfil[], error: null };
 }

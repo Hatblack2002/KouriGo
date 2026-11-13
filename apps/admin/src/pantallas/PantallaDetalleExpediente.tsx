@@ -134,7 +134,7 @@ export function PantallaDetalleExpediente({
         casoId: caso.id,
         decision: opcionElegida.decision,
         motivo: opcionElegida.requiereMotivo ? motivo : null,
-        metodo: opcionElegida.requiereMetodo ? metodo : null,
+        metodo: opcionElegida.requiereMetodo && metodo !== "" ? metodo : null,
       });
       if (!resultado.ok) {
         setError(resultado.mensajeError ?? `La función respondió ${resultado.estado}.`);

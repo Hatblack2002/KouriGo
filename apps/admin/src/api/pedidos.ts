@@ -85,7 +85,7 @@ export async function listarPedidos(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaPedido[], error: null };
+  return { filas: (data ?? []) as unknown as FilaPedido[], error: null };
 }
 
 export async function obtenerPedido(
@@ -100,7 +100,7 @@ export async function obtenerPedido(
   if (error !== null) {
     return { pedido: null, error: error.message };
   }
-  return { pedido: (data as FilaPedido | null) ?? null, error: null };
+  return { pedido: (data as unknown as FilaPedido | null) ?? null, error: null };
 }
 
 export async function obtenerItems(
@@ -115,7 +115,7 @@ export async function obtenerItems(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaItem[], error: null };
+  return { filas: (data ?? []) as unknown as FilaItem[], error: null };
 }
 
 export async function obtenerEventos(
@@ -130,7 +130,7 @@ export async function obtenerEventos(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaEvento[], error: null };
+  return { filas: (data ?? []) as unknown as FilaEvento[], error: null };
 }
 
 export async function obtenerAsignaciones(
@@ -145,7 +145,7 @@ export async function obtenerAsignaciones(
   if (error !== null) {
     return { filas: [], error: error.message };
   }
-  return { filas: (data ?? []) as FilaAsignacion[], error: null };
+  return { filas: (data ?? []) as unknown as FilaAsignacion[], error: null };
 }
 
 /**
@@ -160,7 +160,7 @@ export async function contarPedidosPorEstado(
   if (error !== null) {
     return { conteos: {}, total: 0, error: error.message };
   }
-  const conteos = agruparPorEstado((data ?? []) as { status: string }[]);
+  const conteos = agruparPorEstado((data ?? []) as unknown as { status: string }[]);
   const total = conteos.__total ?? 0;
   return { conteos, total, error: null };
 }
