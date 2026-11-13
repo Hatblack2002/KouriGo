@@ -76,31 +76,37 @@ SELECT public.afirmar(
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.order_assignments SET status = 'accepted'
     WHERE order_id = 'b0000000-0000-4000-8000-000000000003'
       AND courier_user_id = 'a0000000-0000-4000-8000-000000000003';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
+  -- El bloqueo puede manifestarse como excepción (trigger/RLS) o como
+  -- actualización silenciosa de cero filas (la fila no es visible para el rol).
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'un repartidor sin aprobar no debe poder aceptar un pedido');
 END $$;
 
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.courier_profiles SET verification_status = 'approved'
     WHERE user_id = 'a0000000-0000-4000-8000-000000000003';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'un candidato no debe poder aprobar su propio expediente');
 END $$;
 
