@@ -195,7 +195,7 @@ export function PantallaListaPedidos({
         ListEmptyComponent={
           error === null && !cargando ? (
             <Text style={estilos.vacio}>{texto(idioma, "sin_pedidos")}</Text>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <Pressable onPress={() => alAbrirDetalle(item.id)} style={estilos.tarjeta}>

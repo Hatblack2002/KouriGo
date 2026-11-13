@@ -62,12 +62,7 @@ async function conReintentos<T>(operacion: () => Promise<T>, descripcion: string
   throw new Error(`${descripcion} falló tras 5 intentos: ${String(ultimoError)}`);
 }
 
-interface CabecerasServicio {
-  readonly apikey: string;
-  readonly Authorization: string;
-}
-
-function cabecerasServicio(): CabecerasServicio {
+function cabecerasServicio(): Record<string, string> {
   return {
     apikey: claveServicio,
     Authorization: `Bearer ${claveServicio}`,
