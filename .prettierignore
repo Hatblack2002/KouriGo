@@ -5,4 +5,5 @@ package-lock.json
 *.sql
 database
 docs
+supabase/functions
 **/*.md

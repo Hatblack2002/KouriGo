@@ -13,6 +13,7 @@ on:
     paths:
       - "database/**"
       - "scripts/**"
+      - "supabase/**"
       - ".github/workflows/supabase.yml"
   workflow_dispatch:
 
@@ -29,6 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,3 +45,14 @@ jobs:
 
       - name: Verificar esquema, RLS y transiciones contra el proyecto real
         run: bash scripts/verificar_supabase.sh
+
+      - name: Configurar Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verificación de tipos de las Edge Functions
+        run: deno check supabase/functions/
+
+      - name: Pruebas de integración de Edge Functions contra el proyecto real
+        run: deno test --allow-all supabase/functions/_pruebas/integracion.test.ts

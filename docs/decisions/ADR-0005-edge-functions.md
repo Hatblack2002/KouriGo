@@ -1,0 +1,41 @@
+# ADR-0005: Edge Functions para operaciones privilegiadas (Etapa 3)
+
+- **Estado:** Aceptado
+- **Fecha:** 2026-11-13
+- **Ámbito:** Edge Functions: despacho, aprobaciones, transiciones y auditoría (Etapa 3)
+- **Especificación:** docs/architecture/backend-supabase.md (sección "Edge Functions y servidor"); docs/product/plan-etapas.md (Etapa 3)
+
+## Contexto
+
+La Etapa 3 exige operaciones privilegiadas de servidor: despacho de pedidos, aprobaciones del expediente, transiciones de estado con el actor determinado en el servidor y auditoría. La clave service-role solo puede existir en el entorno servidor (backend-supabase.md sección 39). Las Edge Functions de Supabase están incluidas en el plan gratuito del proyecto; no requieren pago. El plan define la verificación de la etapa como pruebas de integración en CI.
+
+## Decisión
+
+1. **Cuatro funciones en `supabase/functions/` (Deno, sin dependencias externas):**
+   - `transicion-pedido`: transición de estado con el actor resuelto SIEMPRE en el servidor (JWT verificado contra `/auth/v1/user`; rol administrador leído de `user_roles` con el JWT del llamador, cliente propietario o repartidor aprobado con asignación). La matriz local (`_shared/dominio.ts`) valida el par antes de tocar el backend y el trigger `validar_transicion_pedido` vuelve a imponerla con la sesión real.
+   - `despachar-pedido`: solo administrador. La operación atómica vive en el RPC `public.despachar_pedido` (migración 0004, SECURITY DEFINER, EXECUTE revocado a PUBLIC/anon/authenticated y concedido solo a service_role): crea la asignación, mueve el pedido a `offered`, escribe el evento `despacho_administrativo` con el administrador real como actor y registra en `audit_logs` en una única transacción.
+   - `decision-verificacion`: solo administrador. Aplica decisiones del expediente (iniciar_revision, pedir_informacion, programar_verificacion, aprobar, rechazar, suspender, solicitar_reverificacion, expirar) y la revisión de documentos. Las mutaciones se aplican con el JWT del propio administrador, de modo que RLS y el trigger `validar_transicion_expediente` (migraciones 0002 y 0003: pares, motivo fresco, método) imponen las reglas y los eventos quedan con `auth.uid()` real.
+   - `documento-firmado`: solo administrador. Emite signed URLs de corta duración (300 s) para los documentos KYC del bucket `courier-identity-private` (obligación dejada por ADR-0004), tras comprobar bucket y convención de carpeta por usuario; cada emisión se audita.
+2. **service_role solo para lo verdaderamente privilegiado:** invocar el RPC de despacho, escribir en `audit_logs` (sin política de INSERT) y firmar documentos. Todo lo demás usa el JWT del llamador para que RLS y triggers vean la identidad real. El JWT se verifica contra el servicio Auth y el rol contra `user_roles`; nunca se acepta un rol enviado por el cliente (README sección 12, regla 15).
+3. **Patrón de pruebas sin dependencias:** cada función exporta `procesar(req)` y solo monta `Deno.serve` cuando `import.meta.main`. Las pruebas unitarias (`_pruebas/unitarias.test.ts`) ejecutan `procesar` directamente con `Request` construidos, sin secretos; las aserciones viven en `_pruebas/afirmar.ts` para resolver sin red.
+4. **Pruebas de integración reales (`_pruebas/integracion.test.ts`), en el workflow `Supabase (proyecto real)`:** crean usuarios reales por la Admin API con credenciales únicas, inician sesiones por password grant, suben una evidencia real al bucket privado, presentan el expediente por la vía del candidato, recorren revisión→aprobación→despacho→aceptación invocando los mismos manejadores `procesar`, comprueban efectos en `orders`, `order_assignments`, `courier_profiles`, `order_events` y `audit_logs`, y rechazan los accesos indebidos. La limpieza final elimina usuarios, filas y objetos; la prueba falla si deja residuos. Sin secretos, la prueba se omite (el job de CI normal no tiene secretos).
+5. **Workflow:** `CI` añade el job `edge-functions` (Deno: `deno check` + unitarias); `Supabase (proyecto real)` añade Deno, la verificación de tipos y las pruebas de integración, y ahora se dispara con `supabase/**`.
+6. **Convención de estilo:** el código Deno no pasa por ESLint/Prettier del monorepo npm (ignorado en `eslint.config.mjs` y en `.prettierignore`, por tratarse de un runtime distinto); su calidad la fijan `deno check` y `deno test` en su propio job, igual que `database/**` se valida con sus pruebas SQL.
+
+## Consecuencias
+
+**Positivas**
+- Operaciones privilegiadas reales, atómicas y auditables: el despacho solo puede ocurrir a través de la Edge Function (REVOKE del RPC), y toda decisión y firma queda en `audit_logs`.
+- El actor y el rol se determinan en el servidor; el cliente nunca envía su rol.
+- Cobertura positiva y negativa por rol, ejecutada contra el proyecto real de Supabase en cada push que toque `database/**`, `scripts/**` o `supabase/**`.
+
+**Riesgos y obligaciones**
+- **Despliegue al runtime de Supabase pendiente:** las funciones están probadas en CI contra el proyecto real, pero aún no están desplegadas al runtime de Edge Functions. El despliegue requiere el `SUPABASE_ACCESS_TOKEN` (gratuito, se crea en el dashboard de Supabase) configurado como secreto y `supabase functions deploy` en un paso del workflow; queda como paso operativo siguiente, sin bloquear la verificación de la etapa (pruebas de integración en CI, según el plan).
+- El espejo `_shared/dominio.ts` debe mantenerse sincronizado con `packages/domain` y los triggers; las tres suites de pruebas (vitest, Deno y SQL) cierran la consistencia.
+- La firma de documentos tiene vigencia de 300 s y se audita; la retención y eliminación segura de documentos sigue pendiente antes de producción (ADR-0004).
+
+## Alternativas consideradas
+
+- **Despacho en dos llamadas REST desde la función (insertar asignación y luego actualizar el pedido):** rechazada; una falla parcial dejaría un pedido `offered` sin asignación o una asignación huérfana. El RPC SECURITY DEFINER hace todo atómico.
+- **Dejar el RPC ejecutable por authenticated y que la función solo valide payload:** rechazada; el despacho sería invocable por PostgREST sin pasar por la función, debilitando el punto único de auditoría.
+- **Usar supabase-js u otras dependencias en las funciones:** rechazada por ahora; con `fetch` y tipos locales la verificación de tipos y las pruebas se resuelven sin red y sin riesgo de versiones.
