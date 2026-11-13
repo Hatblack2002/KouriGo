@@ -6,7 +6,7 @@
 | Etapa | Contenido | Verificación | Estado |
 |---|---|---|---|
 | 1 | Base técnica: monorepo TypeScript, `packages/domain` (estados, transiciones por rol, comisión, validaciones), migración inicial con RLS y triggers, pipeline CI completo (formato, lint, tipos, pruebas unitarias, PostgreSQL+PostGIS, build, secretos) | Workflow `CI` verde en GitHub Actions (run 43347150143, commit 70cc89b: los cuatro jobs en verde) | **Completada** |
-| 1.5 | Conexión del proyecto Supabase real: aplicar migraciones, verificar RLS contra el proyecto, revisar variables de entorno | Job de CI aplicando migraciones con `DATABASE_URL` (secreto) | Pendiente de credencial de base de datos |
+| 1.5 | Conexión del proyecto Supabase real: aplicar migraciones, verificar RLS contra el proyecto, revisar variables de entorno | Job `Supabase (proyecto real)` aplicando migraciones con `DATABASE_URL` (secreto) y ejecutando `scripts/verificar_supabase.sh` | **Preparada**: runners, SQL de verificación y workflow manual listos (ADR-0003). Pendiente: contraseña de base de datos confirmada por el responsable; región `us-east-1` y usuario del pooler ya confirmados por diagnóstico en sesión 2026-11-13 |
 | 2 | Verificación de repartidores: tablas de expediente, buckets privados de Storage y políticas, flujo de revisión | Pruebas de acceso permitido/denegado en CI | Pendiente |
 | 3 | Edge Functions: operaciones privilegiadas (despacho, aprobaciones, transiciones, auditoría) | Pruebas de integración en CI | Pendiente |
 | 4 | App móvil Expo: autenticación real y creación de pedidos conectada al backend real | Build y pruebas E2E | Pendiente |
