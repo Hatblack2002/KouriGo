@@ -60,8 +60,10 @@ BEGIN
     'validar_transicion_asignacion', 'proteger_estado_verificacion',
     'bloquear_modificacion_mayor'
   ] LOOP
-    IF to_regprocedure('public.' || v_estado || '()') IS NULL THEN
-      RAISE EXCEPTION 'Falta la función public.%()', v_estado;
+    -- Por nombre (to_regproc), no por firma: es_participante_pedido(uuid)
+    -- tiene argumentos y el resto son funciones sin parámetros.
+    IF to_regproc('public.' || v_estado) IS NULL THEN
+      RAISE EXCEPTION 'Falta la función public.%', v_estado;
     END IF;
   END LOOP;
   RAISE NOTICE 'OK: funciones auxiliares presentes';
