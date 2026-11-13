@@ -10,6 +10,7 @@ import { afirmar, afirmarIgual } from "./afirmar.ts";
 import { ErrorHttp } from "../_shared/config.ts";
 import {
   DECISIONES_EXPEDIENTE,
+  esCorreccionAdministrativa,
   esDecisionExpediente,
   esEstadoPedido,
   esTransicionValida,
@@ -77,6 +78,27 @@ Deno.test("explicarTransicionInvalida nombra par y actor", () => {
     "La transición de estado draft -> offered no está permitida para el rol cliente.",
     "mensaje esperado",
   );
+});
+
+Deno.test("esCorreccionAdministrativa marca solo los pares exclusivos del admin (Etapa 5)", () => {
+  // Correcciones: solo el administrador puede aplicarlas.
+  afirmar(esCorreccionAdministrativa("accepted", "cancelled"), "cancelar aceptado es corrección");
+  afirmar(esCorreccionAdministrativa("in_transit", "cancelled"), "cancelar en tránsito es corrección");
+  afirmar(esCorreccionAdministrativa("issue", "pending"), "reabrir incidencia es corrección");
+  afirmar(esCorreccionAdministrativa("issue", "delivered"), "cerrar incidencia como entrega es corrección");
+  afirmar(esCorreccionAdministrativa("issue", "cancelled"), "cerrar incidencia cancelando es corrección");
+  afirmar(esCorreccionAdministrativa("at_pickup", "cancelled"), "cancelar en recogida es corrección");
+  afirmar(esCorreccionAdministrativa("picked_up", "cancelled"), "cancelar recogido es corrección");
+  // Pares compartidos con otros actores NO son correcciones.
+  afirmar(!esCorreccionAdministrativa("pending", "offered"), "ofrecer es del sistema");
+  afirmar(!esCorreccionAdministrativa("offered", "accepted"), "aceptar es del repartidor");
+  afirmar(!esCorreccionAdministrativa("draft", "pending"), "confirmar es del cliente");
+  afirmar(!esCorreccionAdministrativa("draft", "cancelled"), "cancelar borrador es del cliente");
+  afirmar(!esCorreccionAdministrativa("pending", "cancelled"), "cancelar pendiente es del cliente");
+  afirmar(!esCorreccionAdministrativa("in_transit", "delivered"), "entregar es del repartidor");
+  // Pares inválidos no son correcciones.
+  afirmar(!esCorreccionAdministrativa("delivered", "pending"), "lo entregado no vuelve");
+  afirmar(!esCorreccionAdministrativa("draft", "delivered"), "par inexistente");
 });
 
 Deno.test("las decisiones del expediente exigen motivo y método", () => {

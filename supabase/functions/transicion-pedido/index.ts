@@ -2,8 +2,15 @@
  * Edge Function `transicion-pedido` (Etapa 3): transiciones de estado de
  * pedidos con el actor determinado SIEMPRE en el servidor.
  *
- * Entrada: POST {pedido_id: uuid, estado_destino: string}.
+ * Entrada: POST {pedido_id: uuid, estado_destino: string, motivo?: string}.
  * Salida: 200 {pedido_id, de, a, actor} o error JSON con estado 4xx/5xx.
+ *
+ * El motivo es OBLIGATORIO cuando el actor es administrador y el par de
+ * estados es una corrección administrativa (los pares que solo el rol
+ * administrador puede aplicar: cancelaciones justificadas y resolución
+ * de incidencias; README sección 12: «permiso, motivo y registro de
+ * auditoría»). El motivo queda en audit_logs con la acción
+ * `transicion_administrativa`, sin datos personales.
  *
  * El actor se resuelve desde el JWT verificado y los datos del backend
  * (rol administrador, cliente propietario, repartidor aprobado con
@@ -16,18 +23,21 @@ import { esAdministrador, verificarJwt } from "../_shared/auth.ts";
 import type { Entorno } from "../_shared/config.ts";
 import { ErrorHttp, leerEntorno } from "../_shared/config.ts";
 import {
+  esCorreccionAdministrativa,
   esEstadoPedido,
   explicarTransicionInvalida,
   esTransicionValida,
   type Actor,
 } from "../_shared/dominio.ts";
 import {
+  cadenaOpcional,
   exigirMetodo,
   exigirUuid,
   leerCuerpoJson,
   respuestaError,
   respuestaJson,
 } from "../_shared/http.ts";
+import { registrarAuditoria } from "../_shared/auditoria.ts";
 import { rest } from "../_shared/rest.ts";
 import type { SesionLlamador } from "../_shared/auth.ts";
 
@@ -89,6 +99,7 @@ export async function procesar(req: Request): Promise<Response> {
     if (!esEstadoPedido(destino)) {
       throw new ErrorHttp(400, "El campo estado_destino no es un estado válido.");
     }
+    const motivo = cadenaOpcional(cuerpo, "motivo", 500);
 
     const filas = await rest<FilaPedido[]>(
       entorno,
@@ -112,6 +123,14 @@ export async function procesar(req: Request): Promise<Response> {
       );
     }
 
+    if (actor === "administrador" && esCorreccionAdministrativa(pedido.status, destino) &&
+      motivo === null) {
+      throw new ErrorHttp(
+        422,
+        "La corrección administrativa exige un motivo registrado (README sección 12).",
+      );
+    }
+
     const actualizados = await rest<FilaPedido[]>(
       entorno,
       "PATCH",
@@ -121,6 +140,15 @@ export async function procesar(req: Request): Promise<Response> {
     );
     if (!Array.isArray(actualizados) || actualizados.length !== 1) {
       throw new ErrorHttp(422, "La transición del pedido no se pudo aplicar.");
+    }
+    if (actor === "administrador" && motivo !== null) {
+      await registrarAuditoria(entorno, {
+        actorId: sesion.usuarioId,
+        accion: "transicion_administrativa",
+        tipoRecurso: "order",
+        idRecurso: pedidoId,
+        metadatos: { motivo, de: pedido.status, a: destino },
+      });
     }
     return respuestaJson(200, {
       pedido_id: actualizados[0].id,

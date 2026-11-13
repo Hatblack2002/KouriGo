@@ -124,6 +124,20 @@ export function explicarTransicionInvalida(
   return `La transición de estado ${de} -> ${a} no está permitida para el rol ${actor}.`;
 }
 
+/**
+ * Corrección administrativa (Etapa 5): par de estados válido para el
+ * administrador que NINGÚN otro actor puede aplicar (cancelaciones
+ * justificadas y resolución de incidencias). Esas correcciones exigen
+ * motivo registrado y auditoría (README secciones 4 y 12).
+ */
+export function esCorreccionAdministrativa(de: EstadoPedido, a: EstadoPedido): boolean {
+  const otros: readonly Actor[] = ["cliente", "repartidor", "sistema"];
+  if (!esTransicionValida(de, a, "administrador")) {
+    return false;
+  }
+  return otros.every((actor) => !esTransicionValida(de, a, actor));
+}
+
 // ---------------------------------------------------------------------------
 // Expediente de verificación (espejo de packages/domain/src/expediente.ts y
 // del trigger validar_transicion_expediente, migraciones 0002 y 0003)
