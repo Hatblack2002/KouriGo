@@ -46,12 +46,14 @@ describe("transiciones de pedidos", () => {
 
   it("ningún actor puede reabrir un pedido en estado final", () => {
     for (const actor of ACTORES) {
-      expect(esTransicionValida("delivered", "pending", actor), `delivered->pending por ${actor}`).toBe(
-        false,
-      );
-      expect(esTransicionValida("cancelled", "pending", actor), `cancelled->pending por ${actor}`).toBe(
-        false,
-      );
+      expect(
+        esTransicionValida("delivered", "pending", actor),
+        `delivered->pending por ${actor}`,
+      ).toBe(false);
+      expect(
+        esTransicionValida("cancelled", "pending", actor),
+        `cancelled->pending por ${actor}`,
+      ).toBe(false);
     }
   });
 

@@ -104,9 +104,7 @@ export function validarCreacionPedido(datos: DatosCreacionPedido): string[] {
     datos.items.forEach((item, indice) => {
       const descripcion = (item.descripcion ?? "").trim();
       if (descripcion.length < 1 || descripcion.length > 300) {
-        errores.push(
-          `El artículo ${indice + 1} necesita una descripción de 1 a 300 caracteres.`,
-        );
+        errores.push(`El artículo ${indice + 1} necesita una descripción de 1 a 300 caracteres.`);
       }
       if (!esEnteroNoNegativo(item.cantidad) || item.cantidad < 1 || item.cantidad > 999) {
         errores.push(`El artículo ${indice + 1} debe tener una cantidad entera entre 1 y 999.`);
