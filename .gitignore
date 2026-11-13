@@ -1,0 +1,14 @@
+# Dependencias y artefactos de construcción
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Entornos: nunca commitear valores reales (ver .env.example)
+.env
+.env.*
+!.env.example
+
+# Sistema y registros
+*.log
+.DS_Store

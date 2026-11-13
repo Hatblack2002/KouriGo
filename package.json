@@ -1,0 +1,30 @@
+{
+  "name": "kourigo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KouriGo — plataforma de solicitud, compra asistida y entrega de última milla.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test:unit": "npm run test --workspaces --if-present",
+    "test:db": "bash database/tests/run.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "prettier": "^3.5.0",
+    "typescript-eslint": "^8.20.0"
+  }
+}
