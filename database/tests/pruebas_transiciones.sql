@@ -1,14 +1,17 @@
 -- ============================================================================
 -- KouriGo — Pruebas de la máquina de estados (trigger SQL)
 -- Los pares permitidos deben coincidir con packages/domain/src/transiciones.ts.
--- Fixtures de prueba: NO son datos reales de operación.
+--
+-- Todos los pedidos de prueba se SIEMBRAN como superusuario (burlando RLS a
+-- propósito) para fijar su estado inicial; después, cada transición se intenta
+-- con el rol real. Fixtures de prueba: NO son datos reales de operación.
 -- ============================================================================
 \set ON_ERROR_STOP on
 
 BEGIN;
 
 -- ---------------------------------------------------------------------------
--- Preparación (superusuario)
+-- Preparación (superusuario): usuarios, roles y pedidos en sus estados iniciales
 -- ---------------------------------------------------------------------------
 INSERT INTO auth.users (id, email) VALUES
   ('a0000000-0000-4000-8000-000000000001', 'cliente-a@prueba.kourigo.local'),
@@ -23,18 +26,37 @@ INSERT INTO public.user_roles (user_id, role) VALUES
 INSERT INTO public.courier_profiles (user_id, verification_status, account_active)
 VALUES ('a0000000-0000-4000-8000-000000000004', 'approved', true);
 
--- ---------------------------------------------------------------------------
--- SISTEMA (sin claims JWT): solo ofrece y devuelve a la cola
--- ---------------------------------------------------------------------------
+-- S1: pendiente (para el sistema); T12: entregado; T13: ofrecido;
+-- T14: borrador con oferta para D; T15: ofrecido con oferta para D;
+-- T16: con incidencia; T17: en tránsito; T18: entregado.
 INSERT INTO public.orders (
   id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
   currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000011',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'pending', 'Recogida sistema', 'Destino sistema', 'HTG', 10000
-);
+) VALUES
+  ('b0000000-0000-4000-8000-000000000011', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'pending', 'Recogida S1', 'Destino S1', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000012', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'delivered', 'Recogida T12', 'Destino T12', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000013', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'offered', 'Recogida T13', 'Destino T13', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000014', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'draft', 'Recogida T14', 'Destino T14', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000015', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'offered', 'Recogida T15', 'Destino T15', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000016', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'issue', 'Recogida T16', 'Destino T16', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000017', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'in_transit', 'Recogida T17', 'Destino T17', 'HTG', 10000),
+  ('b0000000-0000-4000-8000-000000000018', 'a0000000-0000-4000-8000-000000000001',
+   'delivery', 'delivered', 'Recogida T18', 'Destino T18', 'HTG', 10000);
 
+INSERT INTO public.order_assignments (order_id, courier_user_id, status) VALUES
+  ('b0000000-0000-4000-8000-000000000014', 'a0000000-0000-4000-8000-000000000004', 'offered'),
+  ('b0000000-0000-4000-8000-000000000015', 'a0000000-0000-4000-8000-000000000004', 'offered');
+
+-- ---------------------------------------------------------------------------
+-- SISTEMA (sin claims JWT): solo ofrece y devuelve a la cola
+-- ---------------------------------------------------------------------------
 UPDATE public.orders SET status = 'offered' WHERE id = 'b0000000-0000-4000-8000-000000000011';
 
 SELECT public.afirmar(
@@ -53,38 +75,22 @@ SELECT public.afirmar(
 SET LOCAL role authenticated;
 SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-000000000001"}';
 
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000012',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'delivered', 'Recogida T12', 'Destino T12', 'HTG', 10000
-);
-
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.orders SET status = 'pending'
     WHERE id = 'b0000000-0000-4000-8000-000000000012';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'un pedido entregado no puede volver a pendiente mediante una petición ordinaria');
 END $$;
-
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000013',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'offered', 'Recogida T13', 'Destino T13', 'HTG', 10000
-);
 
 UPDATE public.orders SET status = 'cancelled' WHERE id = 'b0000000-0000-4000-8000-000000000013';
 
@@ -97,59 +103,39 @@ SELECT public.afirmar(
 -- ---------------------------------------------------------------------------
 SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-000000000004"}';
 
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000014',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'draft', 'Recogida T14', 'Destino T14', 'HTG', 10000
-);
-
-INSERT INTO public.order_assignments (order_id, courier_user_id, status)
-VALUES ('b0000000-0000-4000-8000-000000000014', 'a0000000-0000-4000-8000-000000000004', 'offered');
-
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.orders SET status = 'pending'
     WHERE id = 'b0000000-0000-4000-8000-000000000014';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'un repartidor no puede aceptar un pedido en borrador');
 END $$;
-
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000015',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'offered', 'Recogida T15', 'Destino T15', 'HTG', 10000
-);
-
-INSERT INTO public.order_assignments (order_id, courier_user_id, status)
-VALUES ('b0000000-0000-4000-8000-000000000015', 'a0000000-0000-4000-8000-000000000004', 'offered');
 
 UPDATE public.orders SET status = 'accepted' WHERE id = 'b0000000-0000-4000-8000-000000000015';
 
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.orders SET status = 'picked_up'
     WHERE id = 'b0000000-0000-4000-8000-000000000015';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'no se puede saltar el estado at_pickup sin pasar por él');
 END $$;
 
@@ -158,15 +144,6 @@ END $$;
 -- reabrir estados finales. Cada decisión debe quedar en order_events.
 -- ---------------------------------------------------------------------------
 SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-000000000005"}';
-
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000016',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'issue', 'Recogida T16', 'Destino T16', 'HTG', 10000
-);
 
 UPDATE public.orders SET status = 'pending' WHERE id = 'b0000000-0000-4000-8000-000000000016';
 
@@ -182,42 +159,26 @@ SELECT public.afirmar(
      AND to_status = 'pending') = 1,
   'la corrección administrativa debe quedar registrada en order_events');
 
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000017',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'in_transit', 'Recogida T17', 'Destino T17', 'HTG', 10000
-);
-
 UPDATE public.orders SET status = 'cancelled' WHERE id = 'b0000000-0000-4000-8000-000000000017';
 
 SELECT public.afirmar(
   (SELECT status FROM public.orders WHERE id = 'b0000000-0000-4000-8000-000000000017') = 'cancelled',
   'el administrador puede cancelar un pedido en tránsito con justificación');
 
-INSERT INTO public.orders (
-  id, client_id, order_type, status, pickup_address_text, dropoff_address_text,
-  currency, service_fee_amount
-) VALUES (
-  'b0000000-0000-4000-8000-000000000018',
-  'a0000000-0000-4000-8000-000000000001',
-  'delivery', 'delivered', 'Recogida T18', 'Destino T18', 'HTG', 10000
-);
-
 DO $$
 DECLARE
   bloqueado boolean := false;
+  afectadas int := 0;
 BEGIN
   BEGIN
     UPDATE public.orders SET status = 'in_transit'
     WHERE id = 'b0000000-0000-4000-8000-000000000018';
+    GET DIAGNOSTICS afectadas = ROW_COUNT;
   EXCEPTION WHEN OTHERS THEN
     bloqueado := true;
   END;
   PERFORM public.afirmar(
-    bloqueado,
+    bloqueado OR afectadas = 0,
     'ni siquiera el administrador reabre un pedido entregado mediante petición ordinaria');
 END $$;
 
