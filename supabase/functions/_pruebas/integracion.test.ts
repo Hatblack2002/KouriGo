@@ -19,7 +19,7 @@ import { procesar as procesarDocumento } from "../documento-firmado/index.ts";
 import { procesar as procesarTransicion } from "../transicion-pedido/index.ts";
 import { afirmar } from "./afirmar.ts";
 
-const urlBruta = Deno.env.get("SUPABASE_URL") ?? "";
+const urlBruta = (Deno.env.get("SUPABASE_URL") ?? "").trim();
 const anonBruta = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const servicioBruta = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const entornoCompleto =
@@ -44,17 +44,20 @@ async function conReintentos<T>(
   descripcion: string,
 ): Promise<T> {
   let ultimoError: unknown = null;
-  for (let intento = 1; intento <= 3; intento++) {
+  for (let intento = 1; intento <= 5; intento++) {
     try {
       return await operacion();
     } catch (error) {
       ultimoError = error;
-      if (intento < 3) {
-        await new Promise((resolver) => setTimeout(resolver, 2000 * intento));
+      if (intento < 5) {
+        await new Promise((resolver) => setTimeout(resolver, 3000 * intento));
       }
     }
   }
-  throw new Error(`${descripcion} falló tras 3 intentos: ${String(ultimoError)}`);
+  const causa = ultimoError instanceof Error && ultimoError.cause
+    ? ` (causa: ${String(ultimoError.cause)})`
+    : "";
+  throw new Error(`${descripcion} falló tras 5 intentos: ${String(ultimoError)}${causa}`);
 }
 
 async function crearUsuario(

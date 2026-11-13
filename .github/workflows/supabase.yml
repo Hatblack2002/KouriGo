@@ -51,6 +51,14 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: "Diagnóstico de red y del secreto (host y salud del proyecto)"
+        run: |
+          echo "Longitud de SUPABASE_URL: ${#SUPABASE_URL}"
+          echo "getent hosts:"; getent hosts "${SUPABASE_URL#https://}" || echo "(getent sin respuesta)"
+          curl -sS -o /dev/null -w "curl health: %{http_code}\n" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/auth/v1/health" || echo "(curl falló)"
+
       - name: Verificación de tipos de las Edge Functions
         run: deno check supabase/functions/
 
