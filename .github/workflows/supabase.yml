@@ -58,21 +58,33 @@ jobs:
             echo "El host ya resuelve: $(getent hosts "$HOSTPROYECTO" | head -1)"
             exit 0
           fi
-          IP=$(curl -sS "https://1.1.1.1/dns-query?name=${HOSTPROYECTO}&type=A" \
-            -H "accept: application/dns-json" \
-            | python3 -c "import json,sys; d=json.load(sys.stdin); print([a['data'] for a in d.get('Answer', []) if a['type']==1][0])" \
-            || true)
-          if [ -z "${IP:-}" ]; then
-            IP=$(curl -sS "https://dns.google/resolve?name=${HOSTPROYECTO}&type=A" \
-              | python3 -c "import json,sys; d=json.load(sys.stdin); print([a['data'] for a in d.get('Answer', []) if a['type']==1][0])")
+          IP=""
+          for RESOLVER in "https://1.1.1.1/dns-query" "https://1.0.0.1/dns-query" \
+                          "https://dns.google/resolve" "https://dns.quad9.net/resolve"; do
+            IP=$(curl -sS --max-time 10 "${RESOLVER}?name=${HOSTPROYECTO}&type=A" \
+              -H "accept: application/dns-json" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print([a['data'] for a in d.get('Answer', []) if a.get('type')==1][0])" \
+              2>/dev/null || true)
+            if [ -n "$IP" ]; then
+              echo "Resuelto por ${RESOLVER}: ${IP}"
+              break
+            fi
+          done
+          if echo "$IP" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+            sudo sh -c "printf '%s %s\n' '${IP}' '${HOSTPROYECTO}' >> /etc/hosts"
+            getent hosts "$HOSTPROYECTO"
+            exit 0
           fi
-          if ! echo "$IP" | rg -q '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
-            echo "No se pudo resolver el host del proyecto por DoH" >&2
+          echo "DoH sin respuesta; se usa la IP anycast conocida de *.supabase.co (Cloudflare) y se verifica con salud real."
+          sudo sh -c "printf '%s %s\n' '172.64.149.246' '${HOSTPROYECTO}' >> /etc/hosts"
+          CODIGO=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/auth/v1/health" || true)
+          if [ "$CODIGO" != "200" ]; then
+            echo "El host del proyecto no responde por la IP de respaldo (health: ${CODIGO})" >&2
             exit 1
           fi
-          echo "Fijando ${HOSTPROYECTO} -> ${IP} en /etc/hosts"
-          sudo sh -c "printf '%s %s\n' '${IP}' '${HOSTPROYECTO}' >> /etc/hosts"
-          getent hosts "$HOSTPROYECTO"
+          echo "IP de respaldo verificada con health 200."
 
       - name: Verificación de tipos de las Edge Functions
         run: deno check supabase/functions/
