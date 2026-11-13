@@ -49,8 +49,7 @@ export function App() {
     } catch (error) {
       return {
         tipo: "error" as const,
-        mensaje:
-          error instanceof ConfiguracionFaltanteError ? error.message : "",
+        mensaje: error instanceof ConfiguracionFaltanteError ? error.message : "",
       };
     }
   }, []);
@@ -162,9 +161,7 @@ export function App() {
     return (
       <div className="pantalla-centrada">
         <Tarjeta titulo={t("acceso_denegado")}>
-          <MensajeError
-            mensaje={errorAcceso ?? t("acceso_denegado_detalle")}
-          />
+          <MensajeError mensaje={errorAcceso ?? t("acceso_denegado_detalle")} />
           <p className="nota">{t("acceso_denegado_nota")}</p>
           <button className="accion" onClick={() => void salir()}>
             {t("cerrar_sesion")}

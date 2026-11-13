@@ -8,14 +8,7 @@
  * la base de datos y solo cambia la etiqueta visible. La elección queda
  * guardada en localStorage y el kreyòl es el idioma por defecto.
  */
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export type Idioma = "ht" | "fr" | "es";
 
@@ -295,8 +288,7 @@ const TEXTOS_HT: Record<ClaveTexto, string> = {
   sin_pedidos_proyecto: "Pa gen kòmand nan pwojè reyèl la ankò.",
   resumen_estados_titulo: "Estati modèl yo (referans)",
   estados_ciclo: "Dis estati sik vi a:",
-  metricas_reales_nota:
-    "Metrik ki anwo yo montre sèlman estati ki gen kòmand reyèl.",
+  metricas_reales_nota: "Metrik ki anwo yo montre sèlman estati ki gen kòmand reyèl.",
   th_creado: "Kreye",
   th_tipo: "Tip",
   th_estado: "Estati",
@@ -699,8 +691,7 @@ const TEXTOS_ES: Record<ClaveTexto, string> = {
   sin_pedidos_proyecto: "Todavía no hay pedidos en el proyecto real.",
   resumen_estados_titulo: "Estados del modelo (referencia)",
   estados_ciclo: "Los diez estados del ciclo de vida:",
-  metricas_reales_nota:
-    "Las métricas de arriba solo muestran estados con pedidos reales.",
+  metricas_reales_nota: "Las métricas de arriba solo muestran estados con pedidos reales.",
   th_creado: "Creado",
   th_tipo: "Tipo",
   th_estado: "Estado",

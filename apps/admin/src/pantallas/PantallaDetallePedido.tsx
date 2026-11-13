@@ -211,7 +211,9 @@ export function PantallaDetallePedido({
           </dd>
           <dt>{t("f_tipo")}</dt>
           <dd>
-            {pedido.order_type === "assisted_purchase" ? t("tipo_compra_asistida") : t("tipo_entrega")}
+            {pedido.order_type === "assisted_purchase"
+              ? t("tipo_compra_asistida")
+              : t("tipo_entrega")}
           </dd>
           <dt>{t("f_recogida")}</dt>
           <dd>{pedido.pickup_address_text}</dd>

@@ -64,9 +64,7 @@ const CLASES_ESTADO_PEDIDO: Record<string, string> = {
 export function InsigniaEstado({ estado }: { readonly estado: string }) {
   const { idioma } = useIdioma();
   const clase = CLASES_ESTADO_PEDIDO[estado] ?? "estado-neutro";
-  return (
-    <span className={`insignia ${clase}`}>{etiquetaEstadoPedido(idioma, estado)}</span>
-  );
+  return <span className={`insignia ${clase}`}>{etiquetaEstadoPedido(idioma, estado)}</span>;
 }
 
 export function InsigniaExpediente({ estado }: { readonly estado: string }) {
@@ -79,9 +77,7 @@ export function InsigniaExpediente({ estado }: { readonly estado: string }) {
         : estado === "draft" || estado === "expired"
           ? "estado-neutro"
           : "estado-activo";
-  return (
-    <span className={`insignia ${clase}`}>{etiquetaEstadoExpediente(idioma, estado)}</span>
-  );
+  return <span className={`insignia ${clase}`}>{etiquetaEstadoExpediente(idioma, estado)}</span>;
 }
 
 export function SinDatos({ texto }: { readonly texto: string }) {
