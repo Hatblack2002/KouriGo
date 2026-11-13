@@ -91,22 +91,29 @@ RESET request.jwt.claims;
 -- ---------------------------------------------------------------------------
 SET LOCAL role service_role;
 
+SELECT public.despachar_pedido(
+  'b0000000-0000-4000-8000-0000000000d1',
+  'a0000000-0000-4000-8000-0000000000d1',
+  'a0000000-0000-4000-8000-0000000000d4'
+) AS v_asignacion
+\gset
+
+-- La verificación se hace como propietario de las tablas: en CI el
+-- service_role emulado no tiene BYPASSRLS y las políticas cubren solo a
+-- authenticated; en el proyecto real el service_role bypasses RLS, pero
+-- la lectura queda igual de correcta con el propietario.
+RESET role;
+RESET request.jwt.claims;
+
 DO $$
 DECLARE
-  v_asignacion uuid;
   v_estado text;
   v_asignaciones int;
   v_auditorias int;
   v_eventos int;
 BEGIN
-  v_asignacion := public.despachar_pedido(
-    'b0000000-0000-4000-8000-0000000000d1',
-    'a0000000-0000-4000-8000-0000000000d1',
-    'a0000000-0000-4000-8000-0000000000d4'
-  );
-
   PERFORM public.afirmar(
-    v_asignacion IS NOT NULL,
+    :'v_asignacion'::uuid IS NOT NULL,
     'el despacho debe devolver el identificador de la asignación creada'
   );
 
@@ -152,6 +159,8 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Fase 3 — rechazos del RPC
 -- ---------------------------------------------------------------------------
+SET LOCAL role service_role;
+
 DO $$
 DECLARE
   v_mensaje text;

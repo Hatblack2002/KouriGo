@@ -181,11 +181,11 @@ export const DECISIONES_EXPEDIENTE = {
   expirar: { estado: "expired", requiereMotivo: true, requiereMetodo: false },
 } as const;
 
-export type DecisionExpediente = keyof typeof DECISIONES_EXPEDIENTE;
+export type DecisionExpediente = keyof typeof DECISIONES_EXPEDIENTE | "revision_documento";
 
 export function esDecisionExpediente(valor: unknown): valor is DecisionExpediente {
   return typeof valor === "string" &&
-    Object.keys(DECISIONES_EXPEDIENTE).includes(valor);
+    (Object.keys(DECISIONES_EXPEDIENTE).includes(valor) || valor === "revision_documento");
 }
 
 /** Pares administrativos, idénticos al listado del trigger (migración 0002). */

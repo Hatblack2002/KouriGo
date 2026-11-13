@@ -462,7 +462,7 @@ Deno.test({
       falloPrincipal = error;
       throw error;
     } finally {
-      const fallos: string[] = [];
+      const fallos: (string | null)[] = [];
       if (idAdmin !== null || idCliente !== null || idRepartidor !== null) {
         const ids = [idAdmin, idCliente, idRepartidor]
           .filter((id) => id !== null)
@@ -504,7 +504,9 @@ Deno.test({
           ));
         }
       }
-      const fallosReales = fallos.filter((fallo) => fallo !== null) as string[];
+      const fallosReales = fallos.filter(
+        (fallo): fallo is string => fallo !== null,
+      );
       if (falloPrincipal !== null) {
         for (const fallo of fallosReales) {
           console.error("[limpieza]", fallo);
