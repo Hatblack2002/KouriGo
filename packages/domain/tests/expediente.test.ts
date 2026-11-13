@@ -140,10 +140,22 @@ describe("transiciones del sistema", () => {
 });
 
 describe("consistencia de la matriz de transiciones", () => {
-  it("no repite pares dentro del mismo actor", () => {
-    for (const actor of ACTORES_EXPEDIENTE) {
+  it("no repite pares dentro del mismo actor sin unión", () => {
+    const actoresSinUnion = ACTORES_EXPEDIENTE.filter((a) => a !== "administrador");
+    for (const actor of actoresSinUnion) {
       const claves = TRANSICIONES_EXPEDIENTE_POR_ACTOR[actor].map((t) => `${t.de}->${t.a}`);
       expect(new Set(claves).size).toBe(claves.length);
+    }
+  });
+
+  it("la administración puede ejecutar todas las transiciones de los demás actores", () => {
+    const deAdmin = new Set(
+      TRANSICIONES_EXPEDIENTE_POR_ACTOR.administrador.map((t) => `${t.de}->${t.a}`),
+    );
+    for (const actor of ACTORES_EXPEDIENTE) {
+      for (const transicion of TRANSICIONES_EXPEDIENTE_POR_ACTOR[actor]) {
+        expect(deAdmin.has(`${transicion.de}->${transicion.a}`)).toBe(true);
+      }
     }
   });
 
