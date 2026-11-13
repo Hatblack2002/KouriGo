@@ -96,9 +96,7 @@ export async function cerrarSesion(cliente: SupabaseClient): Promise<void> {
 }
 
 /** Restaura la sesión persistida al abrir la consola. */
-export async function sesionActual(
-  cliente: SupabaseClient,
-): Promise<ResultadoSesionRestaurada> {
+export async function sesionActual(cliente: SupabaseClient): Promise<ResultadoSesionRestaurada> {
   const { data, error } = await cliente.auth.getSession();
   if (error !== null) {
     return { tipo: "error", mensaje: mensajeDeError(error) };
@@ -134,9 +132,7 @@ export async function leerRolAdministrador(cliente: SupabaseClient): Promise<Res
 }
 
 /** Nombre visible del perfil propio (RLS lo permite a cualquier sesión). */
-export async function leerNombrePropio(
-  cliente: SupabaseClient,
-): Promise<string | null> {
+export async function leerNombrePropio(cliente: SupabaseClient): Promise<string | null> {
   const { data: datosSesion } = await cliente.auth.getSession();
   const usuarioId = datosSesion.session?.user.id;
   if (typeof usuarioId !== "string" || usuarioId.length === 0) {

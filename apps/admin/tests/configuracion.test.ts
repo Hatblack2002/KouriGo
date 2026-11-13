@@ -18,9 +18,7 @@ describe("leerConfiguracionPublica", () => {
     try {
       leerConfiguracionPublica();
     } catch (error) {
-      expect(error instanceof Error && error.message.includes("VITE_SUPABASE_URL")).toBe(
-        true,
-      );
+      expect(error instanceof Error && error.message.includes("VITE_SUPABASE_URL")).toBe(true);
     }
   });
 

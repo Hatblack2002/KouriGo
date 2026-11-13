@@ -106,9 +106,7 @@ export function InsigniaExpediente({ estado }: { readonly estado: string }) {
         : estado === "draft" || estado === "expired"
           ? "estado-neutro"
           : "estado-activo";
-  return (
-    <span className={`insignia ${clase}`}>{nombreEstadoExpediente(estado)}</span>
-  );
+  return <span className={`insignia ${clase}`}>{nombreEstadoExpediente(estado)}</span>;
 }
 
 export function SinDatos({ texto }: { readonly texto: string }) {

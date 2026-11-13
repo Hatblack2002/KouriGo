@@ -8,11 +8,7 @@
  * el actor lo determina el servidor desde el JWT.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  esTransicionValida,
-  TRANSICIONES_POR_ACTOR,
-  type EstadoPedido,
-} from "@kourigo/domain";
+import { esTransicionValida, TRANSICIONES_POR_ACTOR, type EstadoPedido } from "@kourigo/domain";
 import type { ConfiguracionPublica } from "../configuracion";
 import {
   invocarFuncion,
@@ -170,9 +166,7 @@ export async function contarPedidosPorEstado(
 }
 
 /** Agrupa filas por estado (función pura, probada sin red). */
-export function agruparPorEstado(
-  filas: readonly { status: string }[],
-): Record<string, number> {
+export function agruparPorEstado(filas: readonly { status: string }[]): Record<string, number> {
   const conteos: Record<string, number> = { __total: 0 };
   for (const fila of filas) {
     conteos.__total = (conteos.__total ?? 0) + 1;

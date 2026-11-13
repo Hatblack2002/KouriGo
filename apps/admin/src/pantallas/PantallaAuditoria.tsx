@@ -51,10 +51,7 @@ export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClien
         <div className="filtros">
           <label>
             Acción
-            <select
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-            >
+            <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
               <option value="todas">todas</option>
               {accionesConocidas().map((accion) => (
                 <option key={accion} value={accion}>
@@ -66,10 +63,9 @@ export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClien
           <span className="nota">{filas.length} entradas visibles (últimas 150)</span>
         </div>
         <p className="nota">
-          `audit_logs` no tiene política de escritura para clientes: solo el
-          service_role de las Edge Functions registra entradas, y solo el rol
-          administrador puede leerlas (RLS). Un no administrador vería la tabla vacía
-          aunque conociera esta pantalla.
+          `audit_logs` no tiene política de escritura para clientes: solo el service_role de las
+          Edge Functions registra entradas, y solo el rol administrador puede leerlas (RLS). Un no
+          administrador vería la tabla vacía aunque conociera esta pantalla.
         </p>
       </section>
       <MensajeError mensaje={error} />
@@ -96,19 +92,12 @@ export function PantallaAuditoria({ cliente }: { readonly cliente: SupabaseClien
                   <td>{fila.action}</td>
                   <td>
                     {fila.resource_type}
-                    {fila.resource_id !== null ? (
-                      <>
-                        {" "}
-                        ({fila.resource_id.slice(0, 8)}…)
-                      </>
-                    ) : null}
+                    {fila.resource_id !== null ? <> ({fila.resource_id.slice(0, 8)}…)</> : null}
                   </td>
                   <td>{fila.actor_id !== null ? `${fila.actor_id.slice(0, 8)}…` : "—"}</td>
                   <td>
                     <code>
-                      {Object.keys(fila.metadata).length > 0
-                        ? JSON.stringify(fila.metadata)
-                        : "{}"}
+                      {Object.keys(fila.metadata).length > 0 ? JSON.stringify(fila.metadata) : "{}"}
                     </code>
                   </td>
                 </tr>

@@ -266,12 +266,9 @@ export async function pedirUrlFirmada(
   accessToken: string,
   documentoId: string,
 ): Promise<ResultadoFuncion<RespuestaUrlFirmada>> {
-  return invocarFuncion<RespuestaUrlFirmada>(
-    configuracion,
-    accessToken,
-    "documento-firmado",
-    { documento_id: documentoId },
-  );
+  return invocarFuncion<RespuestaUrlFirmada>(configuracion, accessToken, "documento-firmado", {
+    documento_id: documentoId,
+  });
 }
 
 /** Métodos de verificación admitidos (para el selector de la UI). */

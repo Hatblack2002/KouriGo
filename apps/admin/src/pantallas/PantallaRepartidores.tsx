@@ -71,10 +71,7 @@ export function PantallaRepartidores({
         <div className="filtros">
           <label>
             Estado
-            <select
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value as FiltroCaso)}
-            >
+            <select value={filtro} onChange={(e) => setFiltro(e.target.value as FiltroCaso)}>
               <option value="todos">todos</option>
               {ESTADOS_EXPEDIENTE.map((estado) => (
                 <option key={estado} value={estado}>
@@ -106,11 +103,7 @@ export function PantallaRepartidores({
             </thead>
             <tbody>
               {filas.map((caso) => (
-                <tr
-                  key={caso.id}
-                  className="fila-clic"
-                  onClick={() => alAbrirCaso(caso.id)}
-                >
+                <tr key={caso.id} className="fila-clic" onClick={() => alAbrirCaso(caso.id)}>
                   <td>{nombreDe(caso.courier_user_id)}</td>
                   <td>
                     <InsigniaExpediente estado={caso.status} />

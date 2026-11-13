@@ -271,10 +271,9 @@ export function PantallaDetallePedido({
           </div>
         )}
         <p className="nota">
-          Las transiciones pasan SIEMPRE por la función `transicion-pedido`: el actor
-          lo determina el servidor desde el JWT y el trigger SQL vuelve a imponer la
-          matriz. Los pares exclusivos del administrador son correcciones con motivo
-          y auditoría.
+          Las transiciones pasan SIEMPRE por la función `transicion-pedido`: el actor lo determina
+          el servidor desde el JWT y el trigger SQL vuelve a imponer la matriz. Los pares exclusivos
+          del administrador son correcciones con motivo y auditoría.
         </p>
       </Tarjeta>
       {pedido.status === "pending" ? (
@@ -309,9 +308,8 @@ export function PantallaDetallePedido({
             </div>
           )}
           <p className="nota">
-            El despacho usa la función `despachar-pedido` (RPC atómico por service_role:
-            crea la asignación, mueve el pedido a offered y registra la auditoría en una
-            única transacción).
+            El despacho usa la función `despachar-pedido` (RPC atómico por service_role: crea la
+            asignación, mueve el pedido a offered y registra la auditoría en una única transacción).
           </p>
         </Tarjeta>
       ) : null}

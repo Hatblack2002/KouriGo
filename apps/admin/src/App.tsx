@@ -166,8 +166,8 @@ export function App() {
             }
           />
           <p className="nota">
-            La consola bloquea a usuarios sin permisos aunque conozcan las URLs; los
-            datos quedan además protegidos por RLS en el servidor.
+            La consola bloquea a usuarios sin permisos aunque conozcan las URLs; los datos quedan
+            además protegidos por RLS en el servidor.
           </p>
           <button className="accion" onClick={() => void salir()}>
             Cerrar sesión
@@ -189,18 +189,14 @@ export function App() {
             Resumen
           </button>
           <button
-            className={
-              vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""
-            }
+            className={vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""}
             onClick={() => setVista({ pantalla: "pedidos" })}
           >
             Pedidos
           </button>
           <button
             className={
-              vista.pantalla === "repartidores" || vista.pantalla === "expediente"
-                ? "activo"
-                : ""
+              vista.pantalla === "repartidores" || vista.pantalla === "expediente" ? "activo" : ""
             }
             onClick={() => setVista({ pantalla: "repartidores" })}
           >

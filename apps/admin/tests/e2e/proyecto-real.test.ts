@@ -45,8 +45,7 @@ const env = process.env as unknown as Record<string, string | undefined>;
 const urlProyecto = (env.SUPABASE_URL ?? "").trim();
 const claveAnon = (env.SUPABASE_ANON_KEY ?? "").trim();
 const claveServicio = (env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
-const entornoCompleto =
-  urlProyecto.length > 0 && claveAnon.length > 0 && claveServicio.length > 0;
+const entornoCompleto = urlProyecto.length > 0 && claveAnon.length > 0 && claveServicio.length > 0;
 
 const d = entornoCompleto ? describe : describe.skip;
 
@@ -160,11 +159,7 @@ d("E2E consola administrativa contra el proyecto real", () => {
     // administrativas; la consola NO tiene registro público).
     prueba.ids.adminId = await crearUsuarioServicio(servicio, correos.admin, contrasena);
     prueba.ids.clienteId = await crearUsuarioServicio(servicio, correos.cliente, contrasena);
-    prueba.ids.repartidorId = await crearUsuarioServicio(
-      servicio,
-      correos.repartidor,
-      contrasena,
-    );
+    prueba.ids.repartidorId = await crearUsuarioServicio(servicio, correos.repartidor, contrasena);
 
     // Roles y perfiles (service_role, igual que el aprovisionamiento real).
     const { error: eRolAdmin } = await servicio
@@ -205,8 +200,8 @@ d("E2E consola administrativa contra el proyecto real", () => {
           {
             method: "POST",
             headers: {
-              "apikey": claveServicio,
-              "Authorization": `Bearer ${claveServicio}`,
+              apikey: claveServicio,
+              Authorization: `Bearer ${claveServicio}`,
               "Content-Type": "text/plain",
             },
             body: "evidencia real de la consola administrativa (etapa 5)",
@@ -236,8 +231,7 @@ d("E2E consola administrativa contra el proyecto real", () => {
       contrasena,
     );
     expect(sesionCourier.tipo, "sesión real del repartidor").toBe("ok");
-    prueba.sesiones.repartidor =
-      sesionCourier.tipo === "ok" ? sesionCourier.sesion : null;
+    prueba.sesiones.repartidor = sesionCourier.tipo === "ok" ? sesionCourier.sesion : null;
     const presentacion = await prueba.clientes.repartidor
       .from("courier_verification_cases")
       .update({ status: "submitted" })
@@ -247,59 +241,45 @@ d("E2E consola administrativa contra el proyecto real", () => {
     expect((presentacion.data as { status: string }[])[0]?.status).toBe("submitted");
 
     // Sesiones reales por el mismo servicio de autenticación que usa la app.
-    const sesionAdmin = await iniciarSesion(
-      prueba.clientes.admin,
-      correos.admin,
-      contrasena,
-    );
+    const sesionAdmin = await iniciarSesion(prueba.clientes.admin, correos.admin, contrasena);
     expect(sesionAdmin.tipo, "sesión real del administrador").toBe("ok");
     prueba.sesiones.admin = sesionAdmin.tipo === "ok" ? sesionAdmin.sesion : null;
-    const sesionCliente = await iniciarSesion(
-      prueba.clientes.cliente,
-      correos.cliente,
-      contrasena,
-    );
+    const sesionCliente = await iniciarSesion(prueba.clientes.cliente, correos.cliente, contrasena);
     expect(sesionCliente.tipo, "sesión real del cliente").toBe("ok");
     prueba.sesiones.cliente = sesionCliente.tipo === "ok" ? sesionCliente.sesion : null;
   });
 
-  it(
-    "la consola autentica al administrador y comprueba su rol real",
-    async () => {
-      expect(prueba.sesiones.admin).not.toBeNull();
-      const rol = await leerRolAdministrador(prueba.clientes.admin);
-      expect(rol.tipo).toBe("ok");
-      expect(rol.tipo === "ok" && rol.administrador).toBe(true);
-      const nombre = await leerNombrePropio(prueba.clientes.admin);
-      expect(nombre).toBe("Administradora de Prueba");
-    },
-  );
+  it("la consola autentica al administrador y comprueba su rol real", async () => {
+    expect(prueba.sesiones.admin).not.toBeNull();
+    const rol = await leerRolAdministrador(prueba.clientes.admin);
+    expect(rol.tipo).toBe("ok");
+    expect(rol.tipo === "ok" && rol.administrador).toBe(true);
+    const nombre = await leerNombrePropio(prueba.clientes.admin);
+    expect(nombre).toBe("Administradora de Prueba");
+  });
 
-  it(
-    "una sesión sin rol administrativo queda bloqueada y no puede escalar privilegios",
-    async () => {
-      expect(prueba.sesiones.cliente).not.toBeNull();
-      const rol = await leerRolAdministrador(prueba.clientes.cliente);
-      expect(rol.tipo).toBe("ok");
-      expect(rol.tipo === "ok" && rol.administrador).toBe(false);
+  it("una sesión sin rol administrativo queda bloqueada y no puede escalar privilegios", async () => {
+    expect(prueba.sesiones.cliente).not.toBeNull();
+    const rol = await leerRolAdministrador(prueba.clientes.cliente);
+    expect(rol.tipo).toBe("ok");
+    expect(rol.tipo === "ok" && rol.administrador).toBe(false);
 
-      // La auditoría queda vacía por RLS para un no administrador.
-      const auditoria = await listarAuditoria(prueba.clientes.cliente, "todas");
-      expect(auditoria.error).toBeNull();
-      expect(auditoria.filas).toEqual([]);
+    // La auditoría queda vacía por RLS para un no administrador.
+    const auditoria = await listarAuditoria(prueba.clientes.cliente, "todas");
+    expect(auditoria.error).toBeNull();
+    expect(auditoria.filas).toEqual([]);
 
-      // El intento de autoasignarse el rol admin lo rechaza la política RLS.
-      const escalada = await prueba.clientes.cliente
-        .from("user_roles")
-        .insert({
-          user_id: prueba.ids.clienteId,
-          role: "admin",
-          status: "active",
-        })
-        .select("id");
-      expect(escalada.error).not.toBeNull();
-    },
-  );
+    // El intento de autoasignarse el rol admin lo rechaza la política RLS.
+    const escalada = await prueba.clientes.cliente
+      .from("user_roles")
+      .insert({
+        user_id: prueba.ids.clienteId,
+        role: "admin",
+        status: "active",
+      })
+      .select("id");
+    expect(escalada.error).not.toBeNull();
+  });
 
   it("el administrador lee la auditoría real y los perfiles bajo RLS", async () => {
     const auditoria = await listarAuditoria(prueba.clientes.admin, "todas");
@@ -396,14 +376,12 @@ d("E2E consola administrativa contra el proyecto real", () => {
     expect(error, `crear pedido: ${String(error)}`).toBeNull();
     prueba.ids.pedidoId = (pedidos as { id: string }[])[0]?.id ?? "";
 
-    const { error: eItem } = await prueba.clientes.cliente
-      .from("order_items")
-      .insert({
-        order_id: prueba.ids.pedidoId,
-        description: "Paquete de arroz de 5 kg",
-        quantity: 2,
-        estimated_price_amount: 4000,
-      });
+    const { error: eItem } = await prueba.clientes.cliente.from("order_items").insert({
+      order_id: prueba.ids.pedidoId,
+      description: "Paquete de arroz de 5 kg",
+      quantity: 2,
+      estimated_price_amount: 4000,
+    });
     expect(eItem, `crear artículo: ${String(eItem)}`).toBeNull();
 
     const confirmacion = await transicionarPedido(
@@ -503,11 +481,7 @@ d("E2E consola administrativa contra el proyecto real", () => {
   it("el administrador obtiene y usa una URL firmada real del documento privado", async () => {
     const sesion = prueba.sesiones.admin;
     expect(sesion).not.toBeNull();
-    const firma = await pedirUrlFirmada(
-      configuracion,
-      sesion!.accessToken,
-      prueba.ids.documentoId,
-    );
+    const firma = await pedirUrlFirmada(configuracion, sesion!.accessToken, prueba.ids.documentoId);
     expect(firma.ok, `firmar documento: ${firma.mensajeError}`).toBe(true);
     expect(firma.datos?.url_firmada).toContain("courier-identity-private");
     const descarga = await conReintentos(
@@ -583,10 +557,7 @@ d("E2E consola administrativa contra el proyecto real", () => {
       }
     }
     if (prueba.ids.pedidoId.length > 0) {
-      const { error } = await servicio
-        .from("orders")
-        .delete()
-        .eq("id", prueba.ids.pedidoId);
+      const { error } = await servicio.from("orders").delete().eq("id", prueba.ids.pedidoId);
       if (error) {
         fallos.push(`pedidos: ${error.message}`);
       }
@@ -599,8 +570,8 @@ d("E2E consola administrativa contra el proyecto real", () => {
             {
               method: "DELETE",
               headers: {
-                "apikey": claveServicio,
-                "Authorization": `Bearer ${claveServicio}`,
+                apikey: claveServicio,
+                Authorization: `Bearer ${claveServicio}`,
               },
             },
           ),

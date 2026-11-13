@@ -42,9 +42,8 @@ export function PantallaLogin({
       <section className="tarjeta">
         <h1>KouriGo — Consola administrativa</h1>
         <p className="nota">
-          Acceso restringido al personal autorizado. Las cuentas administrativas se
-          crean o invitan desde la administración principal; no existe registro
-          público (README sección 12).
+          Acceso restringido al personal autorizado. Las cuentas administrativas se crean o invitan
+          desde la administración principal; no existe registro público (README sección 12).
         </p>
         <form onSubmit={(e) => void enviar(e)}>
           <label>

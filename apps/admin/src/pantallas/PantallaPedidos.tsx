@@ -57,10 +57,7 @@ export function PantallaPedidos({
         <div className="filtros">
           <label>
             Estado
-            <select
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value as FiltroEstado)}
-            >
+            <select value={filtro} onChange={(e) => setFiltro(e.target.value as FiltroEstado)}>
               <option value="todos">todos</option>
               {ESTADOS_PEDIDO.map((estado) => (
                 <option key={estado} value={estado}>
@@ -92,11 +89,7 @@ export function PantallaPedidos({
             </thead>
             <tbody>
               {filas.map((pedido) => (
-                <tr
-                  key={pedido.id}
-                  className="fila-clic"
-                  onClick={() => alAbrirPedido(pedido.id)}
-                >
+                <tr key={pedido.id} className="fila-clic" onClick={() => alAbrirPedido(pedido.id)}>
                   <td>{formatearFecha(pedido.created_at)}</td>
                   <td>
                     {pedido.order_type === "assisted_purchase" ? "compra asistida" : "entrega"}

@@ -137,8 +137,7 @@ export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient 
       <section className="tarjeta">
         <h2>Estados del modelo (referencia)</h2>
         <p className="nota">
-          Los diez estados del ciclo de vida:{" "}
-          {ESTADOS_PEDIDO.map(nombreEstadoPedido).join(" · ")}.{" "}
+          Los diez estados del ciclo de vida: {ESTADOS_PEDIDO.map(nombreEstadoPedido).join(" · ")}.{" "}
           Las métricas de arriba solo muestran estados con pedidos reales.
         </p>
       </section>

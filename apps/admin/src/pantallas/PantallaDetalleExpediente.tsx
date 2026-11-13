@@ -112,8 +112,7 @@ export function PantallaDetalleExpediente({
     return `${usuarioId.slice(0, 8)}…`;
   }
 
-  const opciones: DecesionOpcion[] =
-    caso === null ? [] : decisionesAdminDisponibles(caso.status);
+  const opciones: DecesionOpcion[] = caso === null ? [] : decisionesAdminDisponibles(caso.status);
 
   async function aplicarDecision() {
     if (caso === null || opcionElegida === null) {
@@ -163,9 +162,7 @@ export function PantallaDetalleExpediente({
         return;
       }
       setUrlFirmada({ doc: documentoId, url: resultado.datos.url_firmada });
-      setAviso(
-        `URL firmada emitida (${resultado.datos.expira_en_segundos} s de vigencia).`,
-      );
+      setAviso(`URL firmada emitida (${resultado.datos.expira_en_segundos} s de vigencia).`);
     } finally {
       setOcupado(false);
     }
@@ -250,8 +247,7 @@ export function PantallaDetalleExpediente({
                 <select
                   value={opcionElegida?.decision ?? ""}
                   onChange={(e) => {
-                    const elegida =
-                      opciones.find((o) => o.decision === e.target.value) ?? null;
+                    const elegida = opciones.find((o) => o.decision === e.target.value) ?? null;
                     setOpcionElegida(elegida);
                   }}
                 >
@@ -304,15 +300,13 @@ export function PantallaDetalleExpediente({
             </button>
           </div>
           <p className="nota">
-            Las decisiones pasan SIEMPRE por la función `decision-verificacion`: los
-            pares, el motivo fresco y el método los impone también el trigger SQL; los
-            eventos del expediente quedan con el actor real.
+            Las decisiones pasan SIEMPRE por la función `decision-verificacion`: los pares, el
+            motivo fresco y el método los impone también el trigger SQL; los eventos del expediente
+            quedan con el actor real.
           </p>
         </Tarjeta>
       ) : (
-        <SinDatos
-          texto="Este caso no admite más decisiones administrativas en su estado actual."
-        />
+        <SinDatos texto="Este caso no admite más decisiones administrativas en su estado actual." />
       )}
       <Tarjeta titulo="Documentos del expediente (bucket privado)">
         {documentos.length === 0 ? (
@@ -371,9 +365,9 @@ export function PantallaDetalleExpediente({
           </table>
         )}
         <p className="nota">
-          Las notas escritas arriba se aplican a la siguiente revisión de documento
-          (aceptar o rechazar). La emisión de cada URL firmada queda registrada en la
-          auditoría; los enlaces caducan en 5 minutos.
+          Las notas escritas arriba se aplican a la siguiente revisión de documento (aceptar o
+          rechazar). La emisión de cada URL firmada queda registrada en la auditoría; los enlaces
+          caducan en 5 minutos.
         </p>
       </Tarjeta>
       <Tarjeta titulo="Historial del expediente">
