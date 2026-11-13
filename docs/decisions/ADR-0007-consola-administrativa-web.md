@@ -40,3 +40,13 @@ La Etapa 5 del plan exige la «Consola administrativa web», verificada con «bu
 - **Una sola app con vistas por rol (como la móvil):** descartado: el README sección 2.3 pide expresamente una aplicación separada, preferiblemente web, para la administración.
 - **Reutilizar los componentes de `apps/mobile`:** descartado: React Native ≠ DOM; solo se comparte `@kourigo/domain` (y sería incorrecto compartir la capa de datos por el adaptador de almacenamiento distinto).
 - **Extender `transicion-pedido` con RPC propio en la base:** descartado: el motivo administrativo es auditoría de la operación, no transacción atómica; el helper `registrarAuditoria` existente cubre el requisito con el patrón ya probado de la Etapa 3.
+
+## Notas operativas de la primera ejecución (2026-11-14)
+
+1. **Carrera entre workflows de la primera verificación:** la E2E de la consola y el redeploy de `transicion-pedido` corrieron en paralelo y la prueba golpeó la función VIEJA del runtime (aceptó una corrección sin motivo). Tras completarse el despliegue, la E2E reejecutada pasó completa. Cuando un push toque a la vez `supabase/**` y `apps/admin/**`, reejecutar el workflow de la consola después del verde de «Supabase (proyecto real)».
+2. **La matriz administrativa del expediente contiene pares repetidos:** `TRANSICIONES_EXPEDIENTE_POR_ACTOR.administrador` concatena las transiciones del administrador con el espejo del sistema, y `approved -> expired` está dos veces; `decisionesAdminDisponibles` deduplica por destino. (En pedidos no ocurre: `unirSinDuplicados` ya limpia la matriz.)
+3. **El administrador hereda los pares de los demás actores:** desde `offered`, la consola muestra además `accepted` (movimiento del repartidor) y `pending` (del sistema), con `correccion: false`; las expectativas de las pruebas unitarias se ajustaron a la matriz real, no al revés.
+4. **`import.meta.env` en vitest es un proxy:** asignar `undefined` no elimina la variable (el test de «falta una sola variable» no veía la ausencia); se usa `delete`.
+5. **`supabase-js` sin tipos de base de datos:** las filas llegan como `GenericStringError[]`, así que todo resultado se convierte vía `unknown` antes de tiparlo (`as unknown as FilaX[]`), igual que la matriz parcial `Partial<Record<EstadoExpediente, DecisionExpediente>>` para el mapa de decisiones.
+6. **Timeouts de vitest:** los 5 s por defecto agotaban los pasos de la E2E real (varios viajes de red por paso); `testTimeout` y `hookTimeout` a 60 s en `vite.config.ts` del workspace.
+7. **El commit de formato del workflow no dispara workflows:** GitHub evita el bucle con `GITHUB_TOKEN`; tras cada commit de «Corrección de formato», los workflows se redisparan manualmente (workflow_dispatch).
