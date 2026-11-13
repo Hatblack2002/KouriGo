@@ -12,25 +12,15 @@ import { Cargando, InsigniaEstado, MensajeError, SinDatos } from "../componentes
 import { etiquetaEstadoPedido, useIdioma, type ClaveTexto } from "../idiomas";
 import { formatearFecha } from "../formato";
 
-const CLAVES_RESUMEN: readonly ClaveTexto[] = [
-  "resumen_pendientes",
-  "resumen_ofrecidos",
-  "resumen_aceptados",
-  "resumen_transito",
-  "resumen_entregados",
-  "resumen_incidencias",
-  "resumen_cancelados",
+const METRICAS_RESUMEN: readonly { readonly clave: ClaveTexto; readonly estado: string }[] = [
+  { clave: "resumen_pendientes", estado: "pending" },
+  { clave: "resumen_ofrecidos", estado: "offered" },
+  { clave: "resumen_aceptados", estado: "accepted" },
+  { clave: "resumen_transito", estado: "in_transit" },
+  { clave: "resumen_entregados", estado: "delivered" },
+  { clave: "resumen_incidencias", estado: "issue" },
+  { clave: "resumen_cancelados", estado: "cancelled" },
 ];
-
-const ESTADO_POR_CLAVE: Record<string, string> = {
-  resumen_pendientes: "pending",
-  resumen_ofrecidos: "offered",
-  resumen_aceptados: "accepted",
-  resumen_transito: "in_transit",
-  resumen_entregados: "delivered",
-  resumen_incidencias: "issue",
-  resumen_cancelados: "cancelled",
-};
 
 export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient }) {
   const { t, idioma } = useIdioma();
@@ -97,10 +87,10 @@ export function PantallaResumen({ cliente }: { readonly cliente: SupabaseClient 
           <span className="cifra">{activos}</span>
           <span className="etiqueta">{t("metrica_curso")}</span>
         </div>
-        {CLAVES_RESUMEN.map((clave) => (
-          <div className="metrica" key={clave}>
-            <span className="cifra">{conteos?.[ESTADO_POR_CLAVE[clave]] ?? 0}</span>
-            <span className="etiqueta">{t(clave)}</span>
+        {METRICAS_RESUMEN.map((metrica) => (
+          <div className="metrica" key={metrica.clave}>
+            <span className="cifra">{conteos?.[metrica.estado] ?? 0}</span>
+            <span className="etiqueta">{t(metrica.clave)}</span>
           </div>
         ))}
       </div>
