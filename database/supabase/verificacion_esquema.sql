@@ -1,15 +1,18 @@
 -- ============================================================================
--- KouriGo — Etapa 1.5: verificación de esquema contra el proyecto real de
+-- KouriGo — Etapa 1.5/2: verificación de esquema contra el proyecto real de
 -- Supabase (solo lectura). Ejecutada por scripts/verificar_supabase.sh.
 --
 -- Comprueba, contra el catálogo del proyecto real:
 --   - PostGIS instalada (esquema extensions, según docs/architecture/
 --     backend-supabase.md)
---   - las 15 tablas de la migración 0001 existen en public
+--   - las 18 tablas de las migraciones 0001 y 0002 existen en public
 --   - RLS habilitado en todas ellas
 --   - funciones auxiliares y triggers de integridad presentes
 --   - el CHECK de orders.status cubre los 10 estados del README sección 4
---   - las políticas clave de orders existen
+--   - el CHECK de courier_verification_cases cubre los 10 estados del
+--     expediente (courier-identity-verification.md sección 4)
+--   - el bucket privado courier-identity-private existe y no es público
+--   - las políticas clave de orders y de Storage existen
 --   - la superficie de Supabase (auth.uid(), grants a authenticated)
 --   - el registro de migraciones (schema_migrations) no está vacío
 -- Cualquier fallo levanta una excepción y aborta con ON_ERROR_STOP.
@@ -21,7 +24,9 @@ DECLARE
     'profiles', 'user_roles', 'customer_profiles', 'courier_profiles',
     'addresses', 'service_zones', 'orders', 'order_items',
     'order_assignments', 'order_events', 'incidents', 'payments',
-    'ledger_entries', 'courier_payouts', 'audit_logs'
+    'ledger_entries', 'courier_payouts', 'audit_logs',
+    'courier_verification_cases', 'courier_verification_documents',
+    'courier_verification_events'
   ];
   v_faltantes text;
   v_definicion text;
@@ -53,12 +58,15 @@ BEGIN
   END IF;
   RAISE NOTICE 'OK: RLS habilitado en todas las tablas';
 
-  -- Funciones auxiliares de la migración
+  -- Funciones auxiliares de las migraciones
   FOREACH v_estado IN ARRAY ARRAY[
     'es_admin', 'repartidor_aprobado', 'es_participante_pedido',
     'fijar_actualizado_en', 'validar_transicion_pedido',
     'validar_transicion_asignacion', 'proteger_estado_verificacion',
-    'bloquear_modificacion_mayor'
+    'bloquear_modificacion_mayor',
+    'preparar_expediente_nuevo', 'registrar_creacion_expediente',
+    'validar_transicion_expediente', 'sincronizar_estado_verificacion',
+    'registrar_evento_documento', 'registrar_revision_documento'
   ] LOOP
     -- Por nombre (to_regproc), no por firma: es_participante_pedido(uuid)
     -- tiene argumentos y el resto son funciones sin parámetros.
@@ -75,7 +83,13 @@ BEGIN
     ('order_assignments', 'trg_validar_transicion_asignacion'),
     ('courier_profiles', 'trg_proteger_estado_verificacion'),
     ('ledger_entries', 'trg_bloquear_modificacion_mayor'),
-    ('orders', 'trg_fijar_actualizado_en')
+    ('orders', 'trg_fijar_actualizado_en'),
+    ('courier_verification_cases', 'trg_preparar_expediente_nuevo'),
+    ('courier_verification_cases', 'trg_evento_expediente_nuevo'),
+    ('courier_verification_cases', 'trg_validar_transicion_expediente'),
+    ('courier_verification_cases', 'trg_sincronizar_estado_verificacion'),
+    ('courier_verification_documents', 'trg_evento_documento'),
+    ('courier_verification_documents', 'trg_evento_revision_documento')
   ) AS t(tabla, trigger)
   WHERE NOT EXISTS (
     SELECT 1 FROM pg_trigger tr
@@ -108,6 +122,35 @@ BEGIN
   END LOOP;
   RAISE NOTICE 'OK: orders.status cubre los 10 estados del README';
 
+  -- CHECK del expediente: los 10 estados de la especificación de verificación
+  SELECT pg_get_constraintdef(oid) INTO v_definicion
+  FROM pg_constraint
+  WHERE conrelid = 'public.courier_verification_cases'::regclass
+    AND contype = 'c'
+    AND pg_get_constraintdef(oid) LIKE '%status%' AND pg_get_constraintdef(oid) LIKE '%submitted%';
+  IF v_definicion IS NULL THEN
+    RAISE EXCEPTION 'No se encontró el CHECK de courier_verification_cases.status';
+  END IF;
+  FOREACH v_estado IN ARRAY ARRAY[
+    'draft', 'submitted', 'under_review', 'needs_information',
+    'verification_scheduled', 'approved', 'rejected', 'suspended',
+    'expired', 'reverification_required'
+  ] LOOP
+    IF v_definicion NOT LIKE '%' || v_estado || '%' THEN
+      RAISE EXCEPTION 'El CHECK del expediente no incluye el estado %', v_estado;
+    END IF;
+  END LOOP;
+  RAISE NOTICE 'OK: el expediente cubre los 10 estados de la verificación';
+
+  -- Bucket privado de identidad: existe y no es público
+  IF NOT EXISTS (
+    SELECT 1 FROM storage.buckets
+    WHERE id = 'courier-identity-private' AND public = false
+  ) THEN
+    RAISE EXCEPTION 'El bucket privado courier-identity-private no existe o es público';
+  END IF;
+  RAISE NOTICE 'OK: bucket privado courier-identity-private presente';
+
   -- Políticas clave de orders
   SELECT string_agg(t, ', ') INTO v_faltantes
   FROM unnest(ARRAY[
@@ -123,6 +166,23 @@ BEGIN
     RAISE EXCEPTION 'Faltan políticas de orders: %', v_faltantes;
   END IF;
   RAISE NOTICE 'OK: políticas clave de orders presentes';
+
+  -- Políticas de Storage para el bucket privado (Etapa 2)
+  SELECT string_agg(t, ', ') INTO v_faltantes
+  FROM unnest(ARRAY[
+    'docs_identidad_insertar_propio',
+    'docs_identidad_leer_propio_o_admin',
+    'docs_identidad_actualizar_propio',
+    'docs_identidad_eliminar_propio'
+  ]) AS t
+  WHERE NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = t
+  );
+  IF v_faltantes IS NOT NULL THEN
+    RAISE EXCEPTION 'Faltan políticas de Storage: %', v_faltantes;
+  END IF;
+  RAISE NOTICE 'OK: políticas de Storage del bucket privado presentes';
 
   -- Superficie de Supabase y grants de operación
   IF to_regprocedure('auth.uid()') IS NULL THEN

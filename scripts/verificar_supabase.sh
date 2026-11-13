@@ -28,11 +28,11 @@ echo "== Verificación del esquema contra el proyecto real de Supabase"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q \
   -f "$RAIZ/database/supabase/verificacion_esquema.sql"
 
-for PRUEBA in pruebas_rls_cliente.sql pruebas_rls_repartidor.sql pruebas_transiciones.sql; do
-  echo "== Prueba contra Supabase real: $PRUEBA"
+for PRUEBA in "$RAIZ"/database/tests/pruebas_*.sql; do
+  echo "== Prueba contra Supabase real: $(basename "$PRUEBA")"
   {
     cat "$RAIZ/database/supabase/preparacion_pruebas.sql"
-    cat "$RAIZ/database/tests/$PRUEBA"
+    cat "$PRUEBA"
   } | psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q
 done
 

@@ -3,8 +3,9 @@
 # KouriGo — pruebas de base de datos contra PostgreSQL 16 + PostGIS.
 #
 # Por cada archivo database/tests/pruebas_*.sql crea una base limpia, aplica
-# la emulación de Supabase Auth, las migraciones y ejecuta la prueba. Cualquier
-# aserción fallida (excepción SQL) detiene la ejecución con error.
+# las emulaciones de Supabase (Auth y Storage), las migraciones versionadas
+# y ejecuta la prueba. Cualquier aserción fallida (excepción SQL) detiene la
+# ejecución con error.
 #
 # Variables: PGHOST, PGPORT, PGUSER, PGPASSWORD (valores por defecto para CI).
 # ============================================================================
@@ -25,8 +26,12 @@ for PRUEBA in "$RAIZ"/database/tests/pruebas_*.sql; do
   echo "==> Preparando base limpia para $(basename "$PRUEBA")"
   dropdb --if-exists -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" "$BASE"
   createdb -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" "$BASE"
-  $PSQL_Q -d "$BASE" -f "$RAIZ/database/ci/0000_emulacion_supabase_auth.sql"
-  $PSQL_Q -d "$BASE" -f "$RAIZ/database/migrations/0001_esquema_inicial.sql"
+  for EMULACION in "$RAIZ"/database/ci/*.sql; do
+    $PSQL_Q -d "$BASE" -f "$EMULACION"
+  done
+  for MIGRACION in "$RAIZ"/database/migrations/*.sql; do
+    $PSQL_Q -d "$BASE" -f "$MIGRACION"
+  done
   echo "==> Ejecutando $(basename "$PRUEBA")"
   $PSQL -d "$BASE" -f "$PRUEBA"
 done
