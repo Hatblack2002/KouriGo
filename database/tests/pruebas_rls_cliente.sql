@@ -181,32 +181,32 @@ INSERT INTO public.service_zones (id, name, boundary)
 VALUES (
   'c0000000-0000-4000-8000-000000000001',
   'Zona de prueba',
-  ST_GeogFromText('SRID=4326;MULTIPOLYGON(((-72.40 18.50, -72.30 18.50, -72.30 18.60, -72.40 18.60, -72.40 18.50)))')
+  extensions.ST_GeogFromText('SRID=4326;MULTIPOLYGON(((-72.40 18.50, -72.30 18.50, -72.30 18.60, -72.40 18.60, -72.40 18.50)))')
 );
 
 SET LOCAL role authenticated;
 SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-000000000001"}';
 
 UPDATE public.orders
-SET pickup_coordinates = ST_SetSRID(ST_MakePoint(-72.35, 18.55), 4326)::geography
+SET pickup_coordinates = extensions.ST_SetSRID(extensions.ST_MakePoint(-72.35, 18.55), 4326)::extensions.geography
 WHERE id = 'b0000000-0000-4000-8000-000000000001';
 
 SELECT public.afirmar(
   EXISTS (
     SELECT 1 FROM public.service_zones z
     WHERE z.status = 'active'
-      AND ST_Contains(
-        z.boundary::geometry,
-        (SELECT pickup_coordinates::geometry FROM public.orders
+      AND extensions.ST_Contains(
+        z.boundary::extensions.geometry,
+        (SELECT pickup_coordinates::extensions.geometry FROM public.orders
          WHERE id = 'b0000000-0000-4000-8000-000000000001')
       )
   ),
   'la zona de servicio activa debe contener el punto de recogida del pedido');
 
 SELECT public.afirmar(
-  (SELECT ST_Distance(
+  (SELECT extensions.ST_Distance(
      pickup_coordinates,
-     ST_SetSRID(ST_MakePoint(-72.34, 18.56), 4326)::geography)
+     extensions.ST_SetSRID(extensions.ST_MakePoint(-72.34, 18.56), 4326)::extensions.geography)
    FROM public.orders
    WHERE id = 'b0000000-0000-4000-8000-000000000001') > 0,
   'ST_Distance sobre geografía debe devolver una distancia positiva');

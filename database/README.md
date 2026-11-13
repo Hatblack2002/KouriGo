@@ -4,7 +4,7 @@ Estructura:
 
 - `migrations/` — migraciones SQL versionadas, aplicables tanto al proyecto real de Supabase como a un PostgreSQL 16 + PostGIS local/CI. El orden es lexicográfico por prefijo numérico. Los cambios de esquema nunca se hacen solo desde el dashboard sin migración reproducible (docs/architecture/backend-supabase.md sección 3).
 - `ci/` — SOLO para CI y desarrollo local sin Supabase: emula la superficie mínima de Supabase Auth (esquema `auth`, `auth.uid()` y roles). **No aplicar al proyecto real de Supabase.**
-- `tests/` — pruebas SQL de autorización (RLS, transiciones, inmutabilidad del mayor) con casos positivos y negativos por rol, según README sección 17.
+- `tests/` — pruebas SQL de autorización (RLS, transiciones, inmutabilidad del mayor) con casos positivos y negativos por rol, según README sección 17. Las referencias a PostGIS usan calificación explícita (`extensions.ST_*`, `::extensions.geography`) para no depender del `search_path` vigente al cambiar de rol durante las pruebas.
 
 ## Ejecución local
 
