@@ -30,10 +30,15 @@ CREATE TABLE IF NOT EXISTS auth.users (
 
 -- Supabase Auth expone auth.uid() a partir de los claims JWT de la solicitud.
 -- En CI, las pruebas lo fijan con: SET LOCAL request.jwt.claims = '{"sub": "..."}'.
+-- La doble nullif tolera el caso de un parámetro ausente o vacío (por ejemplo
+-- tras RESET request.jwt.claims), igual que el comportamiento de Supabase.
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
 LANGUAGE sql STABLE
 AS $$
-  SELECT nullif(current_setting('request.jwt.claims', true)::json ->> 'sub', '')::uuid
+  SELECT nullif(
+           nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub',
+           ''
+         )::uuid
 $$;
 
 -- Ayudante de pruebas: falla con excepción cuando una condición esperada no
