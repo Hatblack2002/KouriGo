@@ -16,6 +16,11 @@
 
 BEGIN;
 
+-- El tipo geography y las funciones ST_* de PostGIS viven en el esquema
+-- extensions. En Supabase el search_path por defecto ya lo incluye; en un
+-- PostgreSQL sin Supabase hay que fijarlo explícitamente.
+SET LOCAL search_path = public, extensions;
+
 -- ---------------------------------------------------------------------------
 -- PostGIS para consultas geoespaciales (Supabase lo instala en `extensions`)
 -- ---------------------------------------------------------------------------

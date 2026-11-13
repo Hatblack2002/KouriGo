@@ -1,0 +1,44 @@
+name: Formato
+
+# Aplica el formato de Prettier sobre el repositorio y commitea el resultado.
+# Ejecución manual desde la pestaña Actions (workflow_dispatch).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  formatear:
+    name: Aplicar Prettier y commitear
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configurar Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalación reproducible
+        run: npm ci
+
+      - name: Aplicar formato
+        run: npx prettier --write .
+
+      - name: Commit del formato
+        run: |
+          git config user.name "KouriGo Agent"
+          git config user.email "kourigo-agent@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Sin cambios de formato que aplicar."
+          else
+            git commit -m "style: aplicar formato Prettier"
+            git push
+          fi

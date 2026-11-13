@@ -8,6 +8,9 @@
 
 BEGIN;
 
+-- PostGIS vive en el esquema extensions: habilitarlo para esta prueba.
+SET LOCAL search_path = public, extensions;
+
 -- ---------------------------------------------------------------------------
 -- Preparación (superusuario): usuarios y roles de prueba
 -- ---------------------------------------------------------------------------
