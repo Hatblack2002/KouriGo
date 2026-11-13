@@ -186,40 +186,109 @@ export function App() {
   return (
     <div className="admin-shell">
       <aside className="barra">
-        <div className="marca"><span className="marca-simbolo">K</span><span>KouriGo</span></div>
+        <div className="marca">
+          <span className="marca-simbolo">K</span>
+          <span>KouriGo</span>
+        </div>
         <div className="nav-caption">{t("marca")}</div>
         <nav aria-label={t("marca")}>
-          <button className={vista.pantalla === "resumen" ? "activo" : ""} onClick={() => setVista({ pantalla: "resumen" })}>
-            <span className="nav-icono">▦</span><span>{t("nav_resumen")}</span>
+          <button
+            className={vista.pantalla === "resumen" ? "activo" : ""}
+            onClick={() => setVista({ pantalla: "resumen" })}
+          >
+            <span className="nav-icono">▦</span>
+            <span>{t("nav_resumen")}</span>
           </button>
-          <button className={vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""} onClick={() => setVista({ pantalla: "pedidos" })}>
-            <span className="nav-icono">▤</span><span>{t("nav_pedidos")}</span>
+          <button
+            className={vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""}
+            onClick={() => setVista({ pantalla: "pedidos" })}
+          >
+            <span className="nav-icono">▤</span>
+            <span>{t("nav_pedidos")}</span>
           </button>
-          <button className={vista.pantalla === "repartidores" || vista.pantalla === "expediente" ? "activo" : ""} onClick={() => setVista({ pantalla: "repartidores" })}>
-            <span className="nav-icono">♙</span><span>{t("nav_repartidores")}</span>
+          <button
+            className={
+              vista.pantalla === "repartidores" || vista.pantalla === "expediente" ? "activo" : ""
+            }
+            onClick={() => setVista({ pantalla: "repartidores" })}
+          >
+            <span className="nav-icono">♙</span>
+            <span>{t("nav_repartidores")}</span>
           </button>
-          <button className={vista.pantalla === "auditoria" ? "activo" : ""} onClick={() => setVista({ pantalla: "auditoria" })}>
-            <span className="nav-icono">▧</span><span>{t("nav_auditoria")}</span>
+          <button
+            className={vista.pantalla === "auditoria" ? "activo" : ""}
+            onClick={() => setVista({ pantalla: "auditoria" })}
+          >
+            <span className="nav-icono">▧</span>
+            <span>{t("nav_auditoria")}</span>
           </button>
         </nav>
         <div className="sidebar-pie">
           <SelectorIdioma />
-          <div className="perfil-admin"><span className="avatar-admin">{(nombre ?? sesion.correo).slice(0,1).toUpperCase()}</span><span className="perfil-texto"><strong>{nombre ?? sesion.correo}</strong><small>{sesion.correo}</small></span></div>
-          <button className="salir-admin" onClick={() => void salir()}>{t("cerrar_sesion")}</button>
+          <div className="perfil-admin">
+            <span className="avatar-admin">
+              {(nombre ?? sesion.correo).slice(0, 1).toUpperCase()}
+            </span>
+            <span className="perfil-texto">
+              <strong>{nombre ?? sesion.correo}</strong>
+              <small>{sesion.correo}</small>
+            </span>
+          </div>
+          <button className="salir-admin" onClick={() => void salir()}>
+            {t("cerrar_sesion")}
+          </button>
         </div>
       </aside>
       <div className="admin-main">
         <header className="topbar-admin">
-          <div className="migas-admin">{t("marca")} <span>/</span> <strong>{tituloVista}</strong></div>
-          <span className="sesion-indicador"><i />{nombre ?? sesion.correo}</span>
+          <div className="migas-admin">
+            {t("marca")} <span>/</span> <strong>{tituloVista}</strong>
+          </div>
+          <span className="sesion-indicador">
+            <i />
+            {nombre ?? sesion.correo}
+          </span>
         </header>
-        <main className={`contenido ${vista.pantalla === "expediente" ? "contenido-expediente" : ""}`}>
-          <div className="encabezado-vista"><div><h1>{tituloVista}</h1><p>{t("marca")}</p></div></div>
+        <main
+          className={`contenido ${vista.pantalla === "expediente" ? "contenido-expediente" : ""}`}
+        >
+          <div className="encabezado-vista">
+            <div>
+              <h1>{tituloVista}</h1>
+              <p>{t("marca")}</p>
+            </div>
+          </div>
           {vista.pantalla === "resumen" ? <PantallaResumen cliente={cliente} /> : null}
-          {vista.pantalla === "pedidos" ? <PantallaPedidos cliente={cliente} alAbrirPedido={(id) => setVista({ pantalla: "pedido", id })} /> : null}
-          {vista.pantalla === "pedido" ? <PantallaDetallePedido cliente={cliente} configuracion={configuracion.valor} sesion={sesion} pedidoId={vista.id} alVolver={() => setVista({ pantalla: "pedidos" })} /> : null}
-          {vista.pantalla === "repartidores" ? <PantallaRepartidores cliente={cliente} alAbrirCaso={(id) => setVista({ pantalla: "expediente", id })} /> : null}
-          {vista.pantalla === "expediente" ? <PantallaDetalleExpediente cliente={cliente} configuracion={configuracion.valor} sesion={sesion} casoId={vista.id} alVolver={() => setVista({ pantalla: "repartidores" })} /> : null}
+          {vista.pantalla === "pedidos" ? (
+            <PantallaPedidos
+              cliente={cliente}
+              alAbrirPedido={(id) => setVista({ pantalla: "pedido", id })}
+            />
+          ) : null}
+          {vista.pantalla === "pedido" ? (
+            <PantallaDetallePedido
+              cliente={cliente}
+              configuracion={configuracion.valor}
+              sesion={sesion}
+              pedidoId={vista.id}
+              alVolver={() => setVista({ pantalla: "pedidos" })}
+            />
+          ) : null}
+          {vista.pantalla === "repartidores" ? (
+            <PantallaRepartidores
+              cliente={cliente}
+              alAbrirCaso={(id) => setVista({ pantalla: "expediente", id })}
+            />
+          ) : null}
+          {vista.pantalla === "expediente" ? (
+            <PantallaDetalleExpediente
+              cliente={cliente}
+              configuracion={configuracion.valor}
+              sesion={sesion}
+              casoId={vista.id}
+              alVolver={() => setVista({ pantalla: "repartidores" })}
+            />
+          ) : null}
           {vista.pantalla === "auditoria" ? <PantallaAuditoria cliente={cliente} /> : null}
         </main>
       </div>
