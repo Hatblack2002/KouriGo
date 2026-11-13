@@ -20,18 +20,24 @@ Mientras el estado no sea `approved`, el backend debe denegar:
 
 No basta con deshabilitar botones en la aplicación. La API/Edge Functions y RLS deben hacer cumplir la regla.
 
-## 2. Datos solicitados al candidato
+## 2. Datos y documentos solicitados al candidato
 
-Reunir solo lo necesario para comprobar identidad y operar:
+Reunir solo lo necesario para comprobar identidad, antecedentes documentales requeridos por la operación y habilitación del medio de transporte:
 
 - nombre y apellidos legales;
 - teléfono y confirmación OTP;
 - correo electrónico, si se requiere para la cuenta;
 - selfie/fotografía actual del candidato;
 - documento de identidad: cédula nacional haitiana (frente y reverso, cuando corresponda) o pasaporte;
+- **certificat de bonnes vie et mœurs** (certificado de buena conducta/vida y costumbres solicitado por el responsable del desarrollo);
+- **permis de conduire** (licencia de conducir), cuando el repartidor vaya a operar un vehículo para el que la normativa exija permiso;
 - dirección o zona de residencia declarada;
 - zona habitual de trabajo;
 - información del vehículo y matrícula solo cuando aplique al tipo de entrega.
+
+**Regla de habilitación de transporte:** la revisión del permis de conduire debe confirmar que el documento corresponde al candidato, está vigente y cubre la categoría del vehículo declarado. No habilitar entregas motorizadas si el permiso requerido está ausente, vencido, ilegible o pendiente de revisión. Si KouriGo permite repartidores a pie o en bicicleta, no exigir una licencia de conducir para esos modos, salvo que el responsable del producto establezca y justifique otra regla. La exigencia del certificat de bonnes vie et mœurs se aplica al expediente de repartidor conforme a la nueva instrucción del responsable del desarrollo.
+
+La documentación interna no sustituye una validación oficial. El agente debe confirmar con el responsable del producto el formato aceptado, vigencia exigida, autoridad emisora y método legítimo de comprobación de cada certificado antes de automatizar rechazos.
 
 No solicitar contraseñas, PIN de billeteras ni información personal no necesaria. Informar al solicitante del propósito, acceso, conservación y proceso de revisión antes de recopilar documentos.
 
@@ -133,7 +139,7 @@ La implementación debe revisar el esquema existente antes de crear tablas. Enti
 
 - `id`
 - `case_id`
-- `document_type` (national_id_front, national_id_back, passport, selfie)
+- `document_type` (national_id_front, national_id_back, passport, selfie, certificate_good_conduct, driver_license)
 - `storage_bucket`
 - `storage_path`
 - `uploaded_at`
@@ -194,6 +200,9 @@ Evitar guardar imágenes o números completos de documento dentro de los logs. L
 ## 10. Criterios de aceptación
 
 - El registro de repartidor no concede estado aprobado.
+- El expediente contempla el certificat de bonnes vie et mœurs.
+- El permiso de conducir se revisa para repartidores que operen vehículos que lo requieran.
+- Un repartidor no puede realizar entregas motorizadas si el permiso requerido está ausente, vencido o pendiente de validación.
 - Un candidato no puede cambiar su propio estado mediante API directa.
 - El usuario no aprobado no puede aceptar un pedido ni consultar ofertas operativas.
 - El usuario aprobado sí puede operar cuando además está activo y disponible.
