@@ -2,7 +2,7 @@
  * Pruebas unitarias de formato de importes y fechas (README sección 9 y 11).
  */
 import { describe, expect, it } from "vitest";
-import { formatearDinero, formatearFecha } from "../src/formato.js";
+import { formatearDinero, formatearFecha } from "../src/formato";
 
 describe("formatearDinero", () => {
   it("divide el importe entero (unidad mínima) entre 100", () => {

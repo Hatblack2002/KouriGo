@@ -5,7 +5,7 @@
  * JWT; la app nunca envía su rol. La respuesta de error es JSON con la
  * clave `error` (sección compartida _shared/http.ts).
  */
-import type { ConfiguracionPublica } from "./configuracion.js";
+import type { ConfiguracionPublica } from "./configuracion";
 
 export interface RespuestaTransicion {
   readonly pedido_id: string;

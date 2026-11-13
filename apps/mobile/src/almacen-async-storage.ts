@@ -5,7 +5,7 @@
  * en Node usa el adaptador de memoria de almacen-memoria.ts.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { AlmacenSesion } from "./almacen-memoria.js";
+import type { AlmacenSesion } from "./almacen-memoria";
 
 export function almacenAsyncStorage(): AlmacenSesion {
   return {

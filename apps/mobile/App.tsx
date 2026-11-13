@@ -10,25 +10,25 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { PantallaInicioSesion, PantallaRegistro } from "./src/pantalla-autenticacion.js";
-import { PantallaListaPedidos } from "./src/pantalla-lista-pedidos.js";
-import { PantallaNuevoPedido } from "./src/pantalla-nuevo-pedido.js";
-import { PantallaDetallePedido } from "./src/pantalla-detalle-pedido.js";
-import { MensajeError, Titulo, COLORES } from "./src/components.js";
-import { almacenAsyncStorage } from "./src/almacen-async-storage.js";
+import { PantallaInicioSesion, PantallaRegistro } from "./src/pantalla-autenticacion";
+import { PantallaListaPedidos } from "./src/pantalla-lista-pedidos";
+import { PantallaNuevoPedido } from "./src/pantalla-nuevo-pedido";
+import { PantallaDetallePedido } from "./src/pantalla-detalle-pedido";
+import { MensajeError, Titulo, COLORES } from "./src/components";
+import { almacenAsyncStorage } from "./src/almacen-async-storage";
 import {
   leerConfiguracionPublica,
   ConfiguracionFaltanteError,
   type ConfiguracionPublica,
-} from "./src/configuracion.js";
+} from "./src/configuracion";
 import {
   cerrarSesion,
   crearClienteApp,
   sesionActual,
   suscribirseCambiosSesion,
   type SesionActiva,
-} from "./src/auth.js";
-import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./src/i18n.js";
+} from "./src/auth";
+import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./src/i18n";
 
 type Ruta =
   | { readonly nombre: "inicio" }

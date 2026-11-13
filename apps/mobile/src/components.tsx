@@ -13,7 +13,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import { etiquetaEstado, type Idioma } from "./i18n.js";
+import { etiquetaEstado, type Idioma } from "./i18n";
 
 export const COLORES = {
   verde: "#0E7C3A",

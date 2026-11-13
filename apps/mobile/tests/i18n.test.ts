@@ -11,7 +11,7 @@ import {
   etiquetaEstado,
   texto,
   type ClaveTexto,
-} from "../src/i18n.js";
+} from "../src/i18n";
 import { ESTADOS_PEDIDO } from "@kourigo/domain";
 
 describe("diccionarios i18n", () => {

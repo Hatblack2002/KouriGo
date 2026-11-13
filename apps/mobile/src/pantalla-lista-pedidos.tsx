@@ -7,10 +7,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Boton, ChipEstado, MensajeError, Titulo, COLORES } from "./components.js";
-import { formatearDinero, formatearFecha } from "./formato.js";
-import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./i18n.js";
-import { listarPedidos, type FilaPedido } from "./pedidos.js";
+import { Boton, ChipEstado, MensajeError, Titulo, COLORES } from "./components";
+import { formatearDinero, formatearFecha } from "./formato";
+import { ETIQUETA_IDIOMA, IDIOMAS, texto, type Idioma } from "./i18n";
+import { listarPedidos, type FilaPedido } from "./pedidos";
 
 const estilos = StyleSheet.create({
   contenedor: {

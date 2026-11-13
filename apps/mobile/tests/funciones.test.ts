@@ -4,7 +4,7 @@
  * (_shared/http.ts de las funciones).
  */
 import { describe, expect, it } from "vitest";
-import { interpretarCuerpo, type RespuestaTransicion } from "../src/funciones.js";
+import { interpretarCuerpo, type RespuestaTransicion } from "../src/funciones";
 
 describe("interpretarCuerpo", () => {
   it("acepta 200 con el cuerpo de transición", () => {

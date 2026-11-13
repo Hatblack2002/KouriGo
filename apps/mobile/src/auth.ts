@@ -7,8 +7,8 @@
  * aplican las políticas RLS y las Edge Functions del backend.
  */
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
-import type { AlmacenSesion } from "./almacen-memoria.js";
-import type { ConfiguracionPublica } from "./configuracion.js";
+import type { AlmacenSesion } from "./almacen-memoria";
+import type { ConfiguracionPublica } from "./configuracion";
 
 export interface SesionActiva {
   readonly usuarioId: string;

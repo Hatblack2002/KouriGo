@@ -2,7 +2,7 @@
  * Pruebas unitarias de la configuración pública (sin red).
  */
 import { describe, expect, it } from "vitest";
-import { ConfiguracionFaltanteError, leerConfiguracionPublica } from "../src/configuracion.js";
+import { ConfiguracionFaltanteError, leerConfiguracionPublica } from "../src/configuracion";
 
 function fijarEntorno(clave: string, valor: string | undefined): void {
   const env = process.env as Record<string, string | undefined>;

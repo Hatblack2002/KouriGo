@@ -15,10 +15,10 @@ import {
   Titulo,
   TituloSeccion,
   COLORES,
-} from "./components.js";
-import { iniciarSesion, registrarCliente, type SesionActiva } from "./auth.js";
-import type { Idioma } from "./i18n.js";
-import { texto } from "./i18n.js";
+} from "./components";
+import { iniciarSesion, registrarCliente, type SesionActiva } from "./auth";
+import type { Idioma } from "./i18n";
+import { texto } from "./i18n";
 
 const estilos = StyleSheet.create({
   contenedor: {

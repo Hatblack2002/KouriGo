@@ -9,13 +9,13 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ArticuloPedido, TipoPedido } from "@kourigo/domain";
-import { Boton, CampoTexto, MensajeError, Titulo, COLORES } from "./components.js";
+import { Boton, CampoTexto, MensajeError, Titulo, COLORES } from "./components";
 import {
   crearPedidoBorrador,
   validarFormularioPedido,
   type DatosFormularioPedido,
-} from "./pedidos.js";
-import { texto, type ClaveTexto, type Idioma } from "./i18n.js";
+} from "./pedidos";
+import { texto, type ClaveTexto, type Idioma } from "./i18n";
 
 const estilos = StyleSheet.create({
   contenedor: {

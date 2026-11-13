@@ -4,7 +4,7 @@
  * se simula aquí.
  */
 import { describe, expect, it } from "vitest";
-import { almacenMemoria } from "../src/almacen-memoria.js";
+import { almacenMemoria } from "../src/almacen-memoria";
 
 describe("almacenMemoria", () => {
   it("guarda y recupera una cadena", async () => {

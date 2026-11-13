@@ -19,9 +19,9 @@ import {
   registrarCliente,
   sesionActual,
   type SesionActiva,
-} from "../../src/auth.js";
-import { almacenMemoria } from "../../src/almacen-memoria.js";
-import type { ConfiguracionPublica } from "../../src/configuracion.js";
+} from "../../src/auth";
+import { almacenMemoria } from "../../src/almacen-memoria";
+import type { ConfiguracionPublica } from "../../src/configuracion";
 import {
   crearPedidoBorrador,
   listarPedidos,
@@ -32,7 +32,7 @@ import {
   type FilaEvento,
   type FilaItem,
   type FilaPedido,
-} from "../../src/pedidos.js";
+} from "../../src/pedidos";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const env = process.env as unknown as Record<string, string | undefined>;

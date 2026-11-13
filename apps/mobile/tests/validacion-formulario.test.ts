@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { validarCreacionPedido, type ArticuloPedido } from "@kourigo/domain";
-import { validarFormularioPedido, type DatosFormularioPedido } from "../src/pedidos.js";
+import { validarFormularioPedido, type DatosFormularioPedido } from "../src/pedidos";
 
 function datosValidos(): DatosFormularioPedido {
   return {

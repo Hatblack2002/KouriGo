@@ -18,8 +18,8 @@ import {
   type TipoPedido,
 } from "@kourigo/domain";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ConfiguracionPublica } from "./configuracion.js";
-import { invocarFuncion, type RespuestaTransicion } from "./funciones.js";
+import type { ConfiguracionPublica } from "./configuracion";
+import { invocarFuncion, type RespuestaTransicion } from "./funciones";
 
 export interface FilaPedido {
   readonly id: string;

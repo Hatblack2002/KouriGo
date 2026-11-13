@@ -89,6 +89,7 @@ jobs:
       - name: Verificar que el proyecto de Supabase responde (salud real)
         run: |
           CODIGO=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
             "${SUPABASE_URL}/auth/v1/health" || true)
           echo "Salud de Supabase Auth: HTTP ${CODIGO}"
           if [ "$CODIGO" != "200" ]; then

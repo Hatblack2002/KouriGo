@@ -18,9 +18,9 @@ import {
   Titulo,
   TituloSeccion,
   COLORES,
-} from "./components.js";
-import { formatearDinero, formatearFecha } from "./formato.js";
-import { texto, type Idioma } from "./i18n.js";
+} from "./components";
+import { formatearDinero, formatearFecha } from "./formato";
+import { texto, type Idioma } from "./i18n";
 import {
   obtenerEventos,
   obtenerItems,
@@ -30,8 +30,8 @@ import {
   type FilaEvento,
   type FilaItem,
   type FilaPedido,
-} from "./pedidos.js";
-import type { ConfiguracionPublica } from "./configuracion.js";
+} from "./pedidos";
+import type { ConfiguracionPublica } from "./configuracion";
 
 const estilos = StyleSheet.create({
   contenedor: {

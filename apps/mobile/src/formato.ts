@@ -4,7 +4,7 @@
  * (README sección 11): HTG y USD usan dos decimales en su unidad menor
  * (centime/cent), así que se dividen entre 100 para mostrarlos.
  */
-import type { Idioma } from "./i18n.js";
+import type { Idioma } from "./i18n";
 
 /** Muestra un importe entero (unidad mínima) con su código de moneda. */
 export function formatearDinero(monto: number, moneda: string): string {
