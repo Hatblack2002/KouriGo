@@ -186,6 +186,7 @@ Deno.test({
     let idCliente: string | null = null;
     let idRepartidor: string | null = null;
     let pedidoId: string | null = null;
+    let objetoSubido = false;
     let falloPrincipal: unknown = null;
 
     try {
@@ -305,6 +306,7 @@ Deno.test({
         "subida al bucket privado",
       );
       afirmar(subida.ok, `subida al bucket privado -> ${subida.status}: ${await subida.text()}`);
+      objetoSubido = true;
       const documentos = await rest<{ id: string }[]>(
         ent,
         "POST",
@@ -529,7 +531,7 @@ Deno.test({
           `/rest/v1/orders?id=eq.${pedidoId}`,
         ));
       }
-      if (idRepartidor !== null) {
+      if (objetoSubido) {
         fallos.push(await eliminarRuta(
           ent,
           "DELETE",

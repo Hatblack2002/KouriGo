@@ -30,14 +30,18 @@ export async function rest<T>(
   cuerpo: unknown,
   credencial: CredencialRest = {},
 ): Promise<T> {
-  const clave = credencial.servicio
+  // El header apikey exige SIEMPRE una clave de proyecto (anon o
+  // service_role); la sesión del llamador va solo en Authorization Bearer,
+  // de modo que PostgREST aplica sus políticas con esa identidad.
+  const apikey = credencial.servicio ? entorno.serviceKey : entorno.anonKey;
+  const portador = credencial.servicio
     ? entorno.serviceKey
     : (credencial.jwt ?? entorno.anonKey);
   const respuesta = await fetch(`${entorno.url}${ruta}`, {
     method: metodo,
     headers: {
-      "apikey": clave,
-      "Authorization": `Bearer ${clave}`,
+      "apikey": apikey,
+      "Authorization": `Bearer ${portador}`,
       "Content-Type": "application/json",
       ...(metodo !== "GET" ? { "Prefer": "return=representation" } : {}),
     },
