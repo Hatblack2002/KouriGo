@@ -605,7 +605,10 @@ d("E2E consola administrativa contra el proyecto real", () => {
         fallos.push(`listUsers para residuos: ${restosUsuarios.error.message}`);
       } else {
         for (const usuario of restosUsuarios.data.users) {
-          if (usuario.email !== null && Object.values(correos).includes(usuario.email)) {
+          if (
+            typeof usuario.email === "string" &&
+            Object.values(correos).includes(usuario.email)
+          ) {
             fallos.push(`quedó el usuario ${usuario.email}`);
           }
         }
