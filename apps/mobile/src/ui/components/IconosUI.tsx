@@ -1,5 +1,6 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View, type ImageStyle, type StyleProp } from "react-native";
 import { DEGRADADOS_BASE64, ICONOS_BASE64, type NombreIconoUI } from "../assets/iconos-base64";
+import { ILUSTRACIONES_BASE64, type NombreIlustracionUI } from "../assets/ilustraciones-base64";
 import { COLORES, TIPOGRAFIA } from "../theme/tokens";
 
 export interface IconoUIProps {
@@ -26,6 +27,7 @@ export function IconoUI({ nombre, tamano = 20, color }: IconoUIProps) {
 export interface LogoKouriGoProps {
   readonly subtitulo?: string;
   readonly colorSubtitulo?: string;
+  readonly tamano?: "normal" | "grande";
 }
 
 const estilosLogo = StyleSheet.create({
@@ -38,6 +40,11 @@ const estilosLogo = StyleSheet.create({
     height: 22,
     marginBottom: 1,
   },
+  emblemaGrande: {
+    width: 48,
+    height: 30,
+    marginBottom: 2,
+  },
   filaTexto: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -48,33 +55,62 @@ const estilosLogo = StyleSheet.create({
     lineHeight: 24,
     color: COLORES.logoGrafito,
   },
+  kouriGrande: {
+    ...TIPOGRAFIA.logoWordmark,
+    fontSize: 28,
+    lineHeight: 32,
+    color: COLORES.logoGrafito,
+  },
   go: {
     ...TIPOGRAFIA.logoWordmark,
     fontSize: 22,
     lineHeight: 24,
     color: COLORES.verdeLogoG,
   },
+  goGrande: {
+    ...TIPOGRAFIA.logoWordmark,
+    fontSize: 28,
+    lineHeight: 32,
+    color: COLORES.verdeLogoG,
+  },
   subtitulo: {
     ...TIPOGRAFIA.logoSubtitulo,
     marginTop: 1,
   },
+  subtituloGrande: {
+    ...TIPOGRAFIA.logoSubtitulo,
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 2,
+  },
 });
 
-export function LogoKouriGo({ subtitulo, colorSubtitulo = COLORES.grisTexto }: LogoKouriGoProps) {
+export function LogoKouriGo({
+  subtitulo,
+  colorSubtitulo = COLORES.grisTexto,
+  tamano = "normal",
+}: LogoKouriGoProps) {
+  const esGrande = tamano === "grande";
   return (
     <View style={estilosLogo.contenedor}>
       <Image
         source={{ uri: ICONOS_BASE64.kourigoEmblem }}
-        style={estilosLogo.emblema}
+        style={esGrande ? estilosLogo.emblemaGrande : estilosLogo.emblema}
         resizeMode="contain"
         accessibilityElementsHidden={true}
       />
       <View style={estilosLogo.filaTexto}>
-        <Text style={estilosLogo.kouri}>Kouri</Text>
-        <Text style={estilosLogo.go}>Go</Text>
+        <Text style={esGrande ? estilosLogo.kouriGrande : estilosLogo.kouri}>Kouri</Text>
+        <Text style={esGrande ? estilosLogo.goGrande : estilosLogo.go}>Go</Text>
       </View>
       {subtitulo !== undefined && subtitulo.trim().length > 0 ? (
-        <Text style={[estilosLogo.subtitulo, { color: colorSubtitulo }]} numberOfLines={1}>
+        <Text
+          style={[
+            esGrande ? estilosLogo.subtituloGrande : estilosLogo.subtitulo,
+            { color: colorSubtitulo },
+          ]}
+          numberOfLines={1}
+        >
           {subtitulo}
         </Text>
       ) : null}
@@ -152,5 +188,28 @@ const estilosDegradado = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+});
+
+export interface ImagenIlustracionProps {
+  readonly nombre: NombreIlustracionUI;
+  readonly estilo?: StyleProp<ImageStyle>;
+}
+
+export function ImagenIlustracion({ nombre, estilo }: ImagenIlustracionProps) {
+  return (
+    <Image
+      source={{ uri: ILUSTRACIONES_BASE64[nombre] }}
+      style={[estilosIlustracion.imagen, estilo]}
+      resizeMode="cover"
+      accessibilityElementsHidden={true}
+    />
+  );
+}
+
+const estilosIlustracion = StyleSheet.create({
+  imagen: {
+    width: "100%",
+    height: "100%",
   },
 });

@@ -18,13 +18,16 @@ export {
   type Idioma,
 } from "./i18n/diccionario-ui";
 export { DEGRADADOS_BASE64, ICONOS_BASE64, type NombreIconoUI } from "./assets/iconos-base64";
+export { ILUSTRACIONES_BASE64, type NombreIlustracionUI } from "./assets/ilustraciones-base64";
 export {
   BanderaHaiti,
   FondoDegradado,
   IconoUI,
+  ImagenIlustracion,
   LogoKouriGo,
   type FondoDegradadoProps,
   type IconoUIProps,
+  type ImagenIlustracionProps,
   type LogoKouriGoProps,
 } from "./components/IconosUI";
 export {

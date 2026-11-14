@@ -22,6 +22,7 @@ import {
   BarraNavegacionInferior,
   EncabezadoLogo,
   IconoUI,
+  ImagenIlustracion,
   textoUI,
   type ElementoNavegacionInferior,
 } from "./ui";
@@ -218,6 +219,8 @@ export function PantallaPrincipalCliente({
           slotBanderaIdioma={<BanderaHaiti />}
           alPulsarIdioma={() => alCambiarIdioma(idioma === "fr" ? "ht" : "fr")}
           slotIconoBuscar={<IconoBuscar />}
+          slotImagenHero={<ImagenIlustracion nombre="heroCliente" />}
+          slotIlustracionPromo={<ImagenIlustracion nombre="promoScooter" />}
           servicios={servicios}
           alPulsarPedidoRapido={() => alNuevoPedido("delivery")}
           slotIconoFlechaPromo={<IconoFlecha />}
@@ -225,16 +228,19 @@ export function PantallaPrincipalCliente({
             {
               id: "electronique",
               etiquetaClave: "cat_electronique",
+              slotImagen: <IconoUI nombre="package" tamano={24} color={COLORES.verde} />,
               alPulsar: () => alNuevoPedido("assisted_purchase"),
             },
             {
               id: "mode",
               etiquetaClave: "cat_mode",
+              slotImagen: <IconoUI nombre="gift" tamano={24} color={COLORES.verde} />,
               alPulsar: () => alNuevoPedido("assisted_purchase"),
             },
             {
               id: "maison",
               etiquetaClave: "cat_maison",
+              slotImagen: <IconoUI nombre="home" tamano={24} color={COLORES.verde} />,
               alPulsar: () => alNuevoPedido("assisted_purchase"),
             },
             {

@@ -1,5 +1,5 @@
 /**
- * Pantallas de autenticación (README sección 2.1: registrarse, iniciar y
+ * Pantallas reales de autenticación (README sección 2.1: registrarse, iniciar y
  * cerrar sesión). Llaman al servicio real de Supabase Auth; los errores se
  * muestran traducidos y nunca se ocultan (criterio del MVP: la aplicación
  * muestra estados de error). Estilo según la maqueta aprobada: tarjetas
@@ -9,53 +9,83 @@
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Aviso, Boton, CampoTexto, MensajeError, Titulo, COLORES } from "./components";
+import { Aviso, CampoTexto, MensajeError } from "./components";
 import { iniciarSesion, registrarCliente, type SesionActiva } from "./auth";
 import type { Idioma } from "./i18n";
 import { texto } from "./i18n";
+import {
+  BanderaHaiti,
+  BotonPrimario,
+  COLORES,
+  ESPACIADO,
+  IconoUI,
+  LogoKouriGo,
+  RADIOS,
+  SOMBRAS,
+  TIPOGRAFIA,
+} from "./ui";
 
 const estilos = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: COLORES.blanco,
+    backgroundColor: COLORES.grisFondo,
   },
   contenido: {
-    padding: 20,
+    paddingHorizontal: ESPACIADO.lg,
+    paddingTop: 52,
     paddingBottom: 40,
+    gap: ESPACIADO.lg,
+  },
+  barraSuperior: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   botonVolver: {
-    alignSelf: "flex-start",
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    marginBottom: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ESPACIADO.xs,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: RADIOS.sm,
+    backgroundColor: COLORES.blanco,
+    borderWidth: 1,
+    borderColor: COLORES.borde,
   },
   textoVolver: {
-    color: COLORES.verde,
+    color: COLORES.verdeProfundo,
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: 13,
+  },
+  marcaContenedor: {
+    alignItems: "center",
+    marginTop: ESPACIADO.xs,
   },
   encabezado: {
-    marginTop: 8,
-    marginBottom: 20,
+    gap: 4,
+  },
+  titulo: {
+    ...TIPOGRAFIA.tituloSeccion,
+    fontSize: 22,
+    lineHeight: 28,
+    color: COLORES.grafito,
   },
   eslogan: {
     fontSize: 14,
+    lineHeight: 20,
     color: COLORES.grisTexto,
-    marginTop: 4,
   },
   tarjeta: {
     borderWidth: 1,
     borderColor: COLORES.borde,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: RADIOS.lg,
+    padding: ESPACIADO.lg,
     backgroundColor: COLORES.blanco,
+    gap: ESPACIADO.xs,
+    ...SOMBRAS.tarjeta,
   },
-  enlace: {
-    color: COLORES.verde,
-    textAlign: "center",
-    fontWeight: "700",
-    fontSize: 14,
-    paddingVertical: 16,
+  botonWrapper: {
+    marginTop: ESPACIADO.sm,
   },
 });
 
@@ -68,7 +98,7 @@ interface PropsBase {
   readonly aviso?: string | null;
 }
 
-function EnlaceVolver({
+function CabeceraAutenticacion({
   idioma,
   alVolver,
 }: {
@@ -76,9 +106,21 @@ function EnlaceVolver({
   readonly alVolver: () => void;
 }) {
   return (
-    <Pressable onPress={alVolver} style={estilos.botonVolver}>
-      <Text style={estilos.textoVolver}>← {texto(idioma, "volver")}</Text>
-    </Pressable>
+    <>
+      <View style={estilos.barraSuperior}>
+        <Pressable
+          onPress={alVolver}
+          style={({ pressed }) => [estilos.botonVolver, pressed ? { opacity: 0.8 } : null]}
+        >
+          <IconoUI nombre="back" tamano={16} color={COLORES.verdeProfundo} />
+          <Text style={estilos.textoVolver}>{texto(idioma, "volver")}</Text>
+        </Pressable>
+        <BanderaHaiti />
+      </View>
+      <View style={estilos.marcaContenedor}>
+        <LogoKouriGo subtitulo={texto(idioma, "etiqueta_marca")} />
+      </View>
+    </>
   );
 }
 
@@ -101,10 +143,15 @@ export function PantallaInicioSesion({ idioma, cliente, alIniciar, alVolver, avi
   }
 
   return (
-    <ScrollView style={estilos.contenedor} contentContainerStyle={estilos.contenido}>
-      <EnlaceVolver idioma={idioma} alVolver={alVolver} />
+    <ScrollView
+      style={estilos.contenedor}
+      contentContainerStyle={estilos.contenido}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <CabeceraAutenticacion idioma={idioma} alVolver={alVolver} />
       <View style={estilos.encabezado}>
-        <Titulo>{texto(idioma, "iniciar_sesion")}</Titulo>
+        <Text style={estilos.titulo}>{texto(idioma, "iniciar_sesion")}</Text>
         <Text style={estilos.eslogan}>{texto(idioma, "eslogan")}</Text>
       </View>
       <View style={estilos.tarjeta}>
@@ -117,13 +164,20 @@ export function PantallaInicioSesion({ idioma, cliente, alIniciar, alVolver, avi
         />
         {aviso !== null && aviso !== undefined ? <Aviso mensaje={aviso} /> : null}
         {error !== null ? <MensajeError mensaje={error} /> : null}
-        <Boton
-          textoBoton={cargando ? texto(idioma, "cargando") : texto(idioma, "iniciar_sesion")}
-          alPulsar={() => {
-            void enviar();
-          }}
-          deshabilitado={cargando}
-        />
+        <View style={estilos.botonWrapper}>
+          <BotonPrimario
+            etiqueta={cargando ? texto(idioma, "cargando") : texto(idioma, "iniciar_sesion")}
+            alPulsar={() => {
+              void enviar();
+            }}
+            deshabilitado={cargando}
+            slotIconoDerecha={
+              cargando ? undefined : (
+                <IconoUI nombre="arrowRight" tamano={15} color={COLORES.blanco} />
+              )
+            }
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -163,10 +217,15 @@ export function PantallaRegistro({
   }
 
   return (
-    <ScrollView style={estilos.contenedor} contentContainerStyle={estilos.contenido}>
-      <EnlaceVolver idioma={idioma} alVolver={alVolver} />
+    <ScrollView
+      style={estilos.contenedor}
+      contentContainerStyle={estilos.contenido}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <CabeceraAutenticacion idioma={idioma} alVolver={alVolver} />
       <View style={estilos.encabezado}>
-        <Titulo>{texto(idioma, "crear_cuenta")}</Titulo>
+        <Text style={estilos.titulo}>{texto(idioma, "crear_cuenta")}</Text>
         <Text style={estilos.eslogan}>{texto(idioma, "eslogan")}</Text>
       </View>
       <View style={estilos.tarjeta}>
@@ -183,13 +242,20 @@ export function PantallaRegistro({
           secreta={true}
         />
         {error !== null ? <MensajeError mensaje={error} /> : null}
-        <Boton
-          textoBoton={cargando ? texto(idioma, "cargando") : texto(idioma, "crear_cuenta")}
-          alPulsar={() => {
-            void enviar();
-          }}
-          deshabilitado={cargando}
-        />
+        <View style={estilos.botonWrapper}>
+          <BotonPrimario
+            etiqueta={cargando ? texto(idioma, "cargando") : texto(idioma, "crear_cuenta")}
+            alPulsar={() => {
+              void enviar();
+            }}
+            deshabilitado={cargando}
+            slotIconoDerecha={
+              cargando ? undefined : (
+                <IconoUI nombre="arrowRight" tamano={15} color={COLORES.blanco} />
+              )
+            }
+          />
+        </View>
       </View>
     </ScrollView>
   );
