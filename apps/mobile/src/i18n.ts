@@ -191,10 +191,8 @@ const TEXTOS_HT: Record<ClaveTexto, string> = {
   estado_cancelled: "Anile",
   estado_issue: "Pwoblèm",
   sin_notificaciones: "Pa gen notifikasyon.",
-  sin_notificaciones_detalle:
-    "Notifikasyon yo ap vini nan yon pwochen etap. Nou pa simule anyen.",
-  portefeuille_pendiente:
-    "Pòtfèy la ap vini ak sistèm peman an (etap peman an poko fèt).",
+  sin_notificaciones_detalle: "Notifikasyon yo ap vini nan yon pwochen etap. Nou pa simule anyen.",
+  portefeuille_pendiente: "Pòtfèy la ap vini ak sistèm peman an (etap peman an poko fèt).",
   identidad_pendiente:
     "Idantite ou poko verifye. Ou p ap resevwa okenn kòmand pandan validasyon an.",
   expediente_vacio: "Ou pa gen dosye repatitè ki afiche.",

@@ -19,13 +19,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EstadoPedido } from "@kourigo/domain";
 import { esEstadoPedido, ESTADOS_PEDIDO } from "@kourigo/domain";
-import {
-  Aviso,
-  Boton,
-  MensajeError,
-  TituloSeccion,
-  COLORES,
-} from "./components";
+import { Aviso, Boton, MensajeError, TituloSeccion, COLORES } from "./components";
 import {
   ChipEstado as ChipMaqueta,
   EncabezadoLogo,
@@ -199,11 +193,7 @@ function construirEventos(
     let paso: EventoLineaTiempo["estadoPaso"] = "pendiente";
     if (destino === estadoActual) {
       paso = "activo";
-    } else if (
-      indiceDestino >= 0 &&
-      indiceActual >= 0 &&
-      indiceDestino < indiceActual
-    ) {
+    } else if (indiceDestino >= 0 && indiceActual >= 0 && indiceDestino < indiceActual) {
       paso = "completado";
     }
     return {
@@ -318,7 +308,9 @@ export function PantallaDetallePedido({
             {/* Diagrama de ruta con las direcciones REALES del pedido
                 (sustituye al mapa: no hay proveedor de mapas contratado). */}
             <View style={estilos.tarjeta}>
-              <Text style={estilos.tituloTarjeta}>{texto(idioma, "recogida")} → {texto(idioma, "destino")}</Text>
+              <Text style={estilos.tituloTarjeta}>
+                {texto(idioma, "recogida")} → {texto(idioma, "destino")}
+              </Text>
               <View style={estilos.rutaParada}>
                 <View style={estilos.rutaPunto} />
                 <View style={estilos.rutaTexto}>

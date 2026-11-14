@@ -18,8 +18,10 @@ export interface MetricaRepartidor {
   readonly slotIcono?: ReactNode;
 }
 
-export interface PedidoDisponibleItem
-  extends Omit<TarjetaPedidoProps, "idioma" | "textoAccion" | "alPulsarAccion"> {
+export interface PedidoDisponibleItem extends Omit<
+  TarjetaPedidoProps,
+  "idioma" | "textoAccion" | "alPulsarAccion"
+> {
   readonly id: string;
   readonly alAceptar?: () => void;
   readonly alAbrir?: () => void;
@@ -263,14 +265,10 @@ export function PantallaRepartidorInicio({
         {pedidosDisponibles.length > 0 ? (
           <>
             <View style={estilos.cabeceraSeccion}>
-              <Text style={estilos.tituloSeccion}>
-                {textoUI(idioma, "commandes_disponibles")}
-              </Text>
+              <Text style={estilos.tituloSeccion}>{textoUI(idioma, "commandes_disponibles")}</Text>
               {alPulsarVerTodosPedidos !== undefined ? (
                 <Pressable onPress={alPulsarVerTodosPedidos}>
-                  <Text style={estilos.enlaceVerTodo}>
-                    {textoUI(idioma, "voir_tout")} ›
-                  </Text>
+                  <Text style={estilos.enlaceVerTodo}>{textoUI(idioma, "voir_tout")} ›</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -309,9 +307,7 @@ export function PantallaRepartidorInicio({
               <Text style={estilos.verificadaTitulo}>
                 {textoUI(idioma, "identidad_verificada")}
               </Text>
-              <Text style={estilos.verificadaSubtitulo}>
-                {textoUI(idioma, "respetar_reglas")}
-              </Text>
+              <Text style={estilos.verificadaSubtitulo}>{textoUI(idioma, "respetar_reglas")}</Text>
             </View>
           </View>
         ) : null}

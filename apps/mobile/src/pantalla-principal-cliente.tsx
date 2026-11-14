@@ -162,7 +162,9 @@ export function PantallaPrincipalCliente({
     {
       clave: "commandes",
       etiqueta: textoUI(idioma, "nav_mes_commandes"),
-      renderIcono: (activo) => <IconoRuta tamano={18} color={activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo} />,
+      renderIcono: (activo) => (
+        <IconoRuta tamano={18} color={activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo} />
+      ),
     },
     {
       clave: "notifications",
@@ -323,7 +325,10 @@ export function PantallaPrincipalCliente({
           <BarraIdiomas idioma={idioma} alCambiar={alCambiarIdioma} />
         </View>
         <View style={{ marginTop: 16 }}>
-          <BotonSecundario etiqueta={texto(idioma, "nuevo_pedido")} alPulsar={() => alNuevoPedido("delivery")} />
+          <BotonSecundario
+            etiqueta={texto(idioma, "nuevo_pedido")}
+            alPulsar={() => alNuevoPedido("delivery")}
+          />
         </View>
       </View>
       <View style={{ flex: 1 }} />

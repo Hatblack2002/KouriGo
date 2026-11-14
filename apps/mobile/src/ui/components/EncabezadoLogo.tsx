@@ -116,12 +116,7 @@ export function EncabezadoLogo({
   const mostrarBadge = badgeDerecha !== undefined && badgeDerecha > 0;
 
   return (
-    <View
-      style={[
-        estilos.contenedor,
-        variante === "titulo" ? estilos.contenedorConBorde : null,
-      ]}
-    >
+    <View style={[estilos.contenedor, variante === "titulo" ? estilos.contenedorConBorde : null]}>
       <View style={estilos.ladoIzquierdo}>
         {slotIzquierda !== undefined ? (
           alPulsarIzquierda !== undefined ? (

@@ -40,7 +40,11 @@ describe("clasificarAsignaciones", () => {
     const resultado = clasificarAsignaciones([
       asignacion({ id: "oferta", status: "offered", orders: { status: "offered" } as never }),
       // El sistema devolvió el pedido a la cola: la oferta ya no es válida.
-      asignacion({ id: "oferta_muerta", status: "offered", orders: { status: "pending" } as never }),
+      asignacion({
+        id: "oferta_muerta",
+        status: "offered",
+        orders: { status: "pending" } as never,
+      }),
       asignacion({
         id: "activo",
         status: "accepted",
@@ -104,7 +108,10 @@ describe("calcularKpisCourier", () => {
   });
 
   it("no inventa nota ni cuenta asignaciones sin completed_at", () => {
-    const kpis = calcularKpisCourier([asignacion({ id: "raro", status: "completed", completed_at: null })], ahora);
+    const kpis = calcularKpisCourier(
+      [asignacion({ id: "raro", status: "completed", completed_at: null })],
+      ahora,
+    );
     expect(kpis.entregasHoy).toBe(0);
     expect(kpis.entregasTotales).toBe(1);
   });
@@ -113,13 +120,28 @@ describe("calcularKpisCourier", () => {
 describe("courierOperativo", () => {
   it("aplica la misma regla que repartidor_aprobado() del backend", () => {
     expect(
-      courierOperativo({ verification_status: "approved", account_active: true, work_zone: null, available: false }),
+      courierOperativo({
+        verification_status: "approved",
+        account_active: true,
+        work_zone: null,
+        available: false,
+      }),
     ).toBe(true);
     expect(
-      courierOperativo({ verification_status: "under_review", account_active: true, work_zone: null, available: false }),
+      courierOperativo({
+        verification_status: "under_review",
+        account_active: true,
+        work_zone: null,
+        available: false,
+      }),
     ).toBe(false);
     expect(
-      courierOperativo({ verification_status: "approved", account_active: false, work_zone: null, available: false }),
+      courierOperativo({
+        verification_status: "approved",
+        account_active: false,
+        work_zone: null,
+        available: false,
+      }),
     ).toBe(false);
     expect(courierOperativo(null)).toBe(false);
   });

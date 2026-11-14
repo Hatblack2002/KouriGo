@@ -45,18 +45,13 @@ export interface FilaPerfilCourier {
   readonly available: boolean;
 }
 
-export type ResultadoRepartidor<T> =
-  | { tipo: "ok"; datos: T }
-  | { tipo: "error"; mensaje: string };
+export type ResultadoRepartidor<T> = { tipo: "ok"; datos: T } | { tipo: "error"; mensaje: string };
 
 /** Roles activos del usuario autenticado (RLS: solo los propios o admin). */
 export async function leerRolesActivos(
   cliente: SupabaseClient,
 ): Promise<ResultadoRepartidor<readonly string[]>> {
-  const { data, error } = await cliente
-    .from("user_roles")
-    .select("role")
-    .eq("status", "active");
+  const { data, error } = await cliente.from("user_roles").select("role").eq("status", "active");
   if (error !== null || data === null) {
     return { tipo: "error", mensaje: `user_roles: ${error?.message ?? "sin datos"}` };
   }
@@ -194,9 +189,7 @@ export interface CursosCourier {
   readonly terminados: readonly FilaAsignacion[];
 }
 
-export function clasificarAsignaciones(
-  filas: readonly FilaAsignacion[],
-): CursosCourier {
+export function clasificarAsignaciones(filas: readonly FilaAsignacion[]): CursosCourier {
   const ofertas: FilaAsignacion[] = [];
   const activos: FilaAsignacion[] = [];
   const terminados: FilaAsignacion[] = [];
@@ -248,16 +241,14 @@ export interface KpisCourier {
 }
 
 /** KPIs reales calculados de las asignaciones terminadas (sin inventar nota). */
-export function calcularKpisCourier(
-  filas: readonly FilaAsignacion[],
-  ahora: Date,
-): KpisCourier {
+export function calcularKpisCourier(filas: readonly FilaAsignacion[], ahora: Date): KpisCourier {
   const terminadas = filas.filter((fila) => fila.status === "completed");
   const inicioHoy = new Date(
     Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), ahora.getUTCDate()),
   );
   const entregasHoy = terminadas.filter(
-    (fila) => fila.completed_at !== null && new Date(fila.completed_at).getTime() >= inicioHoy.getTime(),
+    (fila) =>
+      fila.completed_at !== null && new Date(fila.completed_at).getTime() >= inicioHoy.getTime(),
   ).length;
   return { entregasHoy, entregasTotales: terminadas.length };
 }

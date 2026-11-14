@@ -102,17 +102,12 @@ export function BarraNavegacionInferior({
               {elemento.renderIcono(activo)}
               {insignia !== undefined && insignia > 0 ? (
                 <View style={estilos.badge}>
-                  <Text style={estilos.badgeTexto}>
-                    {insignia > 99 ? "99+" : String(insignia)}
-                  </Text>
+                  <Text style={estilos.badgeTexto}>{insignia > 99 ? "99+" : String(insignia)}</Text>
                 </View>
               ) : null}
             </View>
             <Text
-              style={[
-                estilos.etiqueta,
-                activo ? estilos.etiquetaActiva : estilos.etiquetaInactiva,
-              ]}
+              style={[estilos.etiqueta, activo ? estilos.etiquetaActiva : estilos.etiquetaInactiva]}
               numberOfLines={1}
             >
               {elemento.etiqueta}

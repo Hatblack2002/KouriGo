@@ -32,7 +32,9 @@ export function IconoMenu({ color = COLORES.grafito, tamano = 20 }: PropsIcono) 
           marginTop: 4,
         }}
       />
-      <View style={{ width: tamano, height: 2, borderRadius: 1, backgroundColor: color, marginTop: 4 }} />
+      <View
+        style={{ width: tamano, height: 2, borderRadius: 1, backgroundColor: color, marginTop: 4 }}
+      />
     </View>
   );
 }
@@ -175,7 +177,14 @@ export function IconoEscudo({ color = COLORES.verdeMedio, tamano = 22 }: PropsIc
       }}
       accessibilityElementsHidden={true}
     >
-      <Text style={{ color: COLORES.blanco, fontSize: tamano * 0.55, fontWeight: "800", lineHeight: tamano * 0.62 }}>
+      <Text
+        style={{
+          color: COLORES.blanco,
+          fontSize: tamano * 0.55,
+          fontWeight: "800",
+          lineHeight: tamano * 0.62,
+        }}
+      >
         ✓
       </Text>
     </View>
@@ -197,7 +206,10 @@ export function IconoEstrella({ tamano = 14 }: PropsIcono) {
 /** Marca de verificación (aceptar). */
 export function IconoAceptar({ color = COLORES.blanco, tamano = 16 }: PropsIcono) {
   return (
-    <Text style={{ color, fontSize: tamano, fontWeight: "800", lineHeight: tamano + 2 }} accessibilityElementsHidden={true}>
+    <Text
+      style={{ color, fontSize: tamano, fontWeight: "800", lineHeight: tamano + 2 }}
+      accessibilityElementsHidden={true}
+    >
       ✓
     </Text>
   );
@@ -206,7 +218,10 @@ export function IconoAceptar({ color = COLORES.blanco, tamano = 16 }: PropsIcono
 /** Flecha a la derecha. */
 export function IconoFlecha({ color = COLORES.blanco, tamano = 16 }: PropsIcono) {
   return (
-    <Text style={{ color, fontSize: tamano, fontWeight: "800", lineHeight: tamano + 2 }} accessibilityElementsHidden={true}>
+    <Text
+      style={{ color, fontSize: tamano, fontWeight: "800", lineHeight: tamano + 2 }}
+      accessibilityElementsHidden={true}
+    >
       →
     </Text>
   );

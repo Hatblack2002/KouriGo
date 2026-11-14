@@ -232,7 +232,12 @@ export function PantallaPrincipalRepartidor({
     }
     setErrorAccion(null);
     setEnAccion(true);
-    const transicion = await transicionarPedido(configuracion, cliente, asignacion.order_id, destino);
+    const transicion = await transicionarPedido(
+      configuracion,
+      cliente,
+      asignacion.order_id,
+      destino,
+    );
     if (transicion.tipo === "error") {
       setEnAccion(false);
       setErrorAccion(transicion.mensaje);
@@ -313,7 +318,9 @@ export function PantallaPrincipalRepartidor({
     {
       clave: "courses",
       etiqueta: textoUI(idioma, "nav_courses"),
-      renderIcono: (activo) => <IconoRuta tamano={18} color={activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo} />,
+      renderIcono: (activo) => (
+        <IconoRuta tamano={18} color={activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo} />
+      ),
     },
     {
       clave: "historique",
@@ -371,8 +378,7 @@ export function PantallaPrincipalRepartidor({
         <Text style={estilos.tituloSeccion}>{texto(idioma, "cursos_activos")}</Text>
         {cursos.activos.map((asignacion) => {
           const pedido = asignacion.orders;
-          const destino =
-            pedido === null ? null : siguienteTransicionCourier(pedido.status);
+          const destino = pedido === null ? null : siguienteTransicionCourier(pedido.status);
           return (
             <View key={asignacion.id} style={{ marginBottom: 12 }}>
               <TarjetaPedido
@@ -391,9 +397,7 @@ export function PantallaPrincipalRepartidor({
                     : formatearDinero(pedido.service_fee_amount, pedido.currency)
                 }
                 slotImagen={<IconoRuta />}
-                textoAccion={
-                  destino === null || enAccion ? undefined : etiquetaAccion(destino)
-                }
+                textoAccion={destino === null || enAccion ? undefined : etiquetaAccion(destino)}
                 slotIconoAccion={<IconoAceptar />}
                 alPulsarAccion={
                   destino === null || enAccion
@@ -448,10 +452,7 @@ export function PantallaPrincipalRepartidor({
             importeFormateado:
               asignacion.orders === null
                 ? undefined
-                : formatearDinero(
-                    asignacion.orders.service_fee_amount,
-                    asignacion.orders.currency,
-                  ),
+                : formatearDinero(asignacion.orders.service_fee_amount, asignacion.orders.currency),
             slotImagen: <IconoRuta />,
             alAceptar:
               enAccion || !operativo
@@ -524,7 +525,10 @@ export function PantallaPrincipalRepartidor({
               importeFormateado={
                 asignacion.orders === null
                   ? undefined
-                  : formatearDinero(asignacion.orders.service_fee_amount, asignacion.orders.currency)
+                  : formatearDinero(
+                      asignacion.orders.service_fee_amount,
+                      asignacion.orders.currency,
+                    )
               }
               slotImagen={<IconoRuta />}
             />
@@ -574,10 +578,10 @@ export function PantallaPrincipalRepartidor({
       <ScrollView contentContainerStyle={estilos.contenido}>
         {error !== null ? <MensajeError mensaje={error} /> : null}
         <View style={estilos.tarjeta}>
-          <Text style={estilos.perfilNombre}>
-            {correo ?? ""}
-          </Text>
-          <Text style={{ fontSize: 12, fontWeight: "700", color: COLORES.verdeOscuro, marginTop: 4 }}>
+          <Text style={estilos.perfilNombre}>{correo ?? ""}</Text>
+          <Text
+            style={{ fontSize: 12, fontWeight: "700", color: COLORES.verdeOscuro, marginTop: 4 }}
+          >
             {texto(idioma, "rol_courier")}
           </Text>
           <View style={estilos.filaIdioma}>
@@ -600,7 +604,11 @@ export function PantallaPrincipalRepartidor({
           />
           <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
             <View style={{ flex: 1 }}>
-              <Boton textoBoton={texto(idioma, "guardar")} alPulsar={() => void guardarZona()} deshabilitado={perfil === null} />
+              <Boton
+                textoBoton={texto(idioma, "guardar")}
+                alPulsar={() => void guardarZona()}
+                deshabilitado={perfil === null}
+              />
             </View>
           </View>
           {avisoZona !== null ? <Aviso mensaje={avisoZona} /> : null}
@@ -614,7 +622,10 @@ export function PantallaPrincipalRepartidor({
           </Text>
           <View style={{ marginTop: 12 }}>
             <BotonPrimario
-              etiqueta={textoUI(idioma, perfil?.available === true ? "estado_fuera_linea" : "estado_en_linea")}
+              etiqueta={textoUI(
+                idioma,
+                perfil?.available === true ? "estado_fuera_linea" : "estado_en_linea",
+              )}
               alPulsar={() => void cambiarDisponibilidad(!(perfil?.available === true))}
             />
           </View>

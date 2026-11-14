@@ -2,10 +2,7 @@ import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text, View, type ImageSourcePropType } from "react-native";
 import { ChipEstado } from "../components/ChipEstado";
 import { EncabezadoLogo } from "../components/EncabezadoLogo";
-import {
-  LineaTiempoEventos,
-  type EventoLineaTiempo,
-} from "../components/LineaTiempoEventos";
+import { LineaTiempoEventos, type EventoLineaTiempo } from "../components/LineaTiempoEventos";
 import { TarjetaPerfilRepartidor } from "../components/TarjetaPerfilRepartidor";
 import { textoUI, type Idioma } from "../i18n/diccionario-ui";
 import { COLORES, ESPACIADO, RADIOS, TIPOGRAFIA } from "../theme/tokens";

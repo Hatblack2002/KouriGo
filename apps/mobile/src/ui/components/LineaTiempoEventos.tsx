@@ -166,9 +166,7 @@ export function LineaTiempoEventos({ eventos }: LineaTiempoEventosProps) {
 
             <View style={[estilos.cuerpo, esUltimo ? estilos.cuerpoUltimo : null]}>
               <Text
-                style={
-                  evento.estadoPaso === "pendiente" ? estilos.tituloPendiente : estilos.titulo
-                }
+                style={evento.estadoPaso === "pendiente" ? estilos.tituloPendiente : estilos.titulo}
               >
                 {evento.titulo}
               </Text>
