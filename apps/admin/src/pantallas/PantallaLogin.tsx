@@ -6,9 +6,10 @@
  */
 import { useState, type FormEvent } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SesionActiva, ResultadoSesion } from "../auth";
+import type { ResultadoSesion, SesionActiva } from "../auth";
 import { iniciarSesion } from "../auth";
 import { MensajeError } from "../componentes";
+import { LogoKouriGoAdmin } from "../iconos";
 import { SelectorIdioma, useIdioma } from "../idiomas";
 
 export function PantallaLogin({
@@ -42,7 +43,10 @@ export function PantallaLogin({
 
   return (
     <div className="pantalla-centrada">
-      <section className="tarjeta">
+      <div className="login-marca">
+        <LogoKouriGoAdmin subtitulo={t("etiqueta_marca")} />
+      </div>
+      <section className="tarjeta login-tarjeta">
         <h1>{t("login_titulo")}</h1>
         <p className="nota">{t("login_nota")}</p>
         <form onSubmit={(e) => void enviar(e)}>

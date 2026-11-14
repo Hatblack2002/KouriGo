@@ -18,10 +18,21 @@ import {
 } from "./auth";
 import { MensajeError, Tarjeta } from "./componentes";
 import { ConfiguracionFaltanteError, leerConfiguracionPublica } from "./configuracion";
+import {
+  IconoAuditoria,
+  IconoLivreurs,
+  IconoPedidos,
+  IconoResumen,
+  IconoSoporte,
+  IconoUsuario,
+  IconoVerificacion,
+  LogoKouriGoAdmin,
+} from "./iconos";
 import { SelectorIdioma, useIdioma } from "./idiomas";
 import { PantallaAuditoria } from "./pantallas/PantallaAuditoria";
 import { PantallaDetalleExpediente } from "./pantallas/PantallaDetalleExpediente";
 import { PantallaDetallePedido } from "./pantallas/PantallaDetallePedido";
+import { PantallaLivreurs } from "./pantallas/PantallaLivreurs";
 import { PantallaLogin } from "./pantallas/PantallaLogin";
 import { PantallaPedidos } from "./pantallas/PantallaPedidos";
 import { PantallaRepartidores } from "./pantallas/PantallaRepartidores";
@@ -31,6 +42,7 @@ type Vista =
   | { readonly pantalla: "resumen" }
   | { readonly pantalla: "pedidos" }
   | { readonly pantalla: "pedido"; readonly id: string }
+  | { readonly pantalla: "livreurs" }
   | { readonly pantalla: "repartidores" }
   | { readonly pantalla: "expediente"; readonly id: string }
   | { readonly pantalla: "auditoria" };
@@ -39,10 +51,7 @@ type EstadoAcceso = "comprobando" | "sin-sesion" | "administrador" | "sin-permis
 
 export function App() {
   const { t } = useIdioma();
-  // La configuración faltante es un error de despliegue, no de sesión:
-  // se muestra de forma explícita en lugar de una pantalla en blanco. El
-  // mensaje técnico se conserva (lo exige la prueba de configuración);
-  // la explicación traducida se añade al renderizar.
+
   const configuracion = useMemo(() => {
     try {
       return { tipo: "ok" as const, valor: leerConfiguracionPublica() };
@@ -85,7 +94,6 @@ export function App() {
     [cliente, t],
   );
 
-  // Restaurar la sesión persistida del navegador al abrir la consola.
   useEffect(() => {
     if (cliente === null) {
       return;
@@ -128,6 +136,9 @@ export function App() {
   if (configuracion.tipo === "error" || cliente === null) {
     return (
       <div className="pantalla-centrada">
+        <div className="login-marca">
+          <LogoKouriGoAdmin subtitulo={t("etiqueta_marca")} />
+        </div>
         <Tarjeta titulo={t("config_titulo")}>
           <MensajeError
             mensaje={
@@ -148,6 +159,9 @@ export function App() {
   if (acceso === "comprobando") {
     return (
       <div className="pantalla-centrada">
+        <div className="login-marca">
+          <LogoKouriGoAdmin subtitulo={t("etiqueta_marca")} />
+        </div>
         <p className="cargando">{t("acceso_comprobando")}</p>
       </div>
     );
@@ -160,6 +174,9 @@ export function App() {
   if (acceso === "sin-permisos" || sesion === null) {
     return (
       <div className="pantalla-centrada">
+        <div className="login-marca">
+          <LogoKouriGoAdmin subtitulo={t("etiqueta_marca")} />
+        </div>
         <Tarjeta titulo={t("acceso_denegado")}>
           <MensajeError mensaje={errorAcceso ?? t("acceso_denegado_detalle")} />
           <p className="nota">{t("acceso_denegado_nota")}</p>
@@ -174,97 +191,133 @@ export function App() {
     );
   }
 
-  const tituloVista =
-    vista.pantalla === "resumen"
-      ? t("nav_resumen")
-      : vista.pantalla === "pedidos" || vista.pantalla === "pedido"
-        ? t("nav_pedidos")
-        : vista.pantalla === "repartidores" || vista.pantalla === "expediente"
-          ? t("nav_repartidores")
+  const esResumen = vista.pantalla === "resumen";
+  const esPedidos = vista.pantalla === "pedidos" || vista.pantalla === "pedido";
+  const esLivreurs = vista.pantalla === "livreurs";
+  const esVerificacion = vista.pantalla === "repartidores" || vista.pantalla === "expediente";
+  const esAuditoria = vista.pantalla === "auditoria";
+
+  const tituloVista = esResumen
+    ? t("nav_resumen")
+    : esPedidos
+      ? t("nav_pedidos")
+      : esLivreurs
+        ? t("nav_livreurs")
+        : esVerificacion
+          ? t("expedientes_titulo")
           : t("nav_auditoria");
+
+  const subtituloVista = esResumen
+    ? t("subtitulo_resumen")
+    : esPedidos
+      ? t("subtitulo_pedidos")
+      : esLivreurs
+        ? t("subtitulo_livreurs")
+        : esVerificacion
+          ? t("subtitulo_verificacion")
+          : t("subtitulo_auditoria");
 
   return (
     <div className="admin-shell">
       <aside className="barra">
         <div className="marca">
-          <span className="marca-simbolo">K</span>
-          <span>KouriGo</span>
+          <LogoKouriGoAdmin subtitulo={t("etiqueta_marca")} />
         </div>
-        <div className="nav-caption">{t("marca")}</div>
+
         <nav aria-label={t("marca")}>
           <button
-            className={vista.pantalla === "resumen" ? "activo" : ""}
+            type="button"
+            className={esResumen ? "activo" : ""}
             onClick={() => setVista({ pantalla: "resumen" })}
           >
-            <span className="nav-icono">▦</span>
+            <IconoResumen className="nav-icono" />
             <span>{t("nav_resumen")}</span>
           </button>
+
           <button
-            className={vista.pantalla === "pedidos" || vista.pantalla === "pedido" ? "activo" : ""}
+            type="button"
+            className={esPedidos ? "activo" : ""}
             onClick={() => setVista({ pantalla: "pedidos" })}
           >
-            <span className="nav-icono">▤</span>
+            <IconoPedidos className="nav-icono" />
             <span>{t("nav_pedidos")}</span>
           </button>
+
           <button
-            className={
-              vista.pantalla === "repartidores" || vista.pantalla === "expediente" ? "activo" : ""
-            }
+            type="button"
+            className={esLivreurs ? "activo" : ""}
+            onClick={() => setVista({ pantalla: "livreurs" })}
+          >
+            <IconoLivreurs className="nav-icono" />
+            <span>{t("nav_livreurs")}</span>
+          </button>
+
+          <button
+            type="button"
+            className={esVerificacion ? "activo" : ""}
             onClick={() => setVista({ pantalla: "repartidores" })}
           >
-            <span className="nav-icono">♙</span>
-            <span>{t("nav_repartidores")}</span>
+            <IconoVerificacion className="nav-icono" />
+            <span>{t("nav_verificacion")}</span>
           </button>
+
           <button
-            className={vista.pantalla === "auditoria" ? "activo" : ""}
+            type="button"
+            className={esAuditoria ? "activo" : ""}
             onClick={() => setVista({ pantalla: "auditoria" })}
           >
-            <span className="nav-icono">▧</span>
+            <IconoAuditoria className="nav-icono" />
             <span>{t("nav_auditoria")}</span>
           </button>
         </nav>
+
         <div className="sidebar-pie">
-          <SelectorIdioma />
-          <div className="perfil-admin">
-            <span className="avatar-admin">
-              {(nombre ?? sesion.correo).slice(0, 1).toUpperCase()}
+          <div className="soporte-tarjeta">
+            <span className="soporte-icono">
+              <IconoSoporte />
             </span>
-            <span className="perfil-texto">
-              <strong>{nombre ?? sesion.correo}</strong>
-              <small>{sesion.correo}</small>
-            </span>
-          </div>
-          <button className="salir-admin" onClick={() => void salir()}>
-            {t("cerrar_sesion")}
-          </button>
-        </div>
-      </aside>
-      <div className="admin-main">
-        <header className="topbar-admin">
-          <div className="migas-admin">
-            {t("marca")} <span>/</span> <strong>{tituloVista}</strong>
-          </div>
-          <span className="sesion-indicador">
-            <i />
-            {nombre ?? sesion.correo}
-          </span>
-        </header>
-        <main
-          className={`contenido ${vista.pantalla === "expediente" ? "contenido-expediente" : ""}`}
-        >
-          <div className="encabezado-vista">
-            <div>
-              <h1>{tituloVista}</h1>
-              <p>{t("marca")}</p>
+            <div className="soporte-texto">
+              <strong>{t("soporte_admin")}</strong>
+              <small>KouriGo Admin</small>
             </div>
           </div>
+        </div>
+      </aside>
+
+      <div className="admin-main">
+        <header className="topbar-admin">
+          <div className="topbar-derecha">
+            <SelectorIdioma />
+            <span className="topbar-divisor" aria-hidden="true" />
+            <div className="admin-usuario-pill" title={sesion.correo}>
+              <span className="avatar-admin">
+                <IconoUsuario width={15} height={15} />
+              </span>
+              <span className="admin-usuario-nombre">
+                {nombre ?? sesion.correo ?? t("administrador_rol")}
+              </span>
+            </div>
+            <button type="button" className="salir-admin" onClick={() => void salir()}>
+              {t("cerrar_sesion")}
+            </button>
+          </div>
+        </header>
+
+        <main className="contenido">
+          <div className="encabezado-vista">
+            <h1>{tituloVista}</h1>
+            <p>{subtituloVista}</p>
+          </div>
+
           {vista.pantalla === "resumen" ? <PantallaResumen cliente={cliente} /> : null}
+
           {vista.pantalla === "pedidos" ? (
             <PantallaPedidos
               cliente={cliente}
               alAbrirPedido={(id) => setVista({ pantalla: "pedido", id })}
             />
           ) : null}
+
           {vista.pantalla === "pedido" ? (
             <PantallaDetallePedido
               cliente={cliente}
@@ -274,12 +327,19 @@ export function App() {
               alVolver={() => setVista({ pantalla: "pedidos" })}
             />
           ) : null}
+
+          {vista.pantalla === "livreurs" ? <PantallaLivreurs cliente={cliente} /> : null}
+
           {vista.pantalla === "repartidores" ? (
             <PantallaRepartidores
               cliente={cliente}
+              configuracion={configuracion.valor}
+              sesion={sesion}
+              nombreAdministrador={nombre ?? sesion.correo}
               alAbrirCaso={(id) => setVista({ pantalla: "expediente", id })}
             />
           ) : null}
+
           {vista.pantalla === "expediente" ? (
             <PantallaDetalleExpediente
               cliente={cliente}
@@ -289,6 +349,7 @@ export function App() {
               alVolver={() => setVista({ pantalla: "repartidores" })}
             />
           ) : null}
+
           {vista.pantalla === "auditoria" ? <PantallaAuditoria cliente={cliente} /> : null}
         </main>
       </div>
