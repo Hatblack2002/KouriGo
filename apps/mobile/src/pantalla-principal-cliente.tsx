@@ -21,6 +21,7 @@ import type { TipoPedido } from "@kourigo/domain";
 import {
   BarraNavegacionInferior,
   EncabezadoLogo,
+  IconoUI,
   textoUI,
   type ElementoNavegacionInferior,
 } from "./ui";

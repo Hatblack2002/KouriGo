@@ -138,9 +138,19 @@ export function FondoDegradado({ tipo }: FondoDegradadoProps) {
   return (
     <Image
       source={{ uri: DEGRADADOS_BASE64[tipo] }}
-      style={StyleSheet.absoluteFillObject}
+      style={estilosDegradado.fondo}
       resizeMode="stretch"
       accessibilityElementsHidden={true}
     />
   );
 }
+
+const estilosDegradado = StyleSheet.create({
+  fondo: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+});
