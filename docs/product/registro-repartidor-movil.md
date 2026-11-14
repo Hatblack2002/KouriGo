@@ -50,24 +50,57 @@ repartidor; la app lo reflejará así sin atajos.
 | `courier_profiles.work_zone` | Comuna de trabajo (Ouest: Port-au-Prince, Delmas, Pétion-Ville, …) |
 | `courier_profiles.vehicle_plate` | Placa de la motocicleta/vehículo |
 
-## 4. Decisiones que solo el fundador puede tomar (la información pendiente)
+## 4. Decisiones del fundador (registradas el 2026-11-15)
 
-1. ¿`certificate_good_conduct` es **obligatorio** para enviar el expediente o opcional?
-2. ¿`passport` se exige solo a extranjeros o se acepta siempre como alternativa a la CIN?
-3. ¿Método de verificación por defecto del MVP: `documental`, `videoconferencia` o `presencial`?
-4. ¿Se usa `verification_scheduled` (cita presencial) en el MVP o se omite ese estado por ahora?
-5. Lista cerrada de **comunas/zonas** habilitadas en el lanzamiento.
-6. Texto de consentimiento para el tratamiento de datos de identidad (quién lo redacta y en qué idiomas).
+1. **Buena conducta: OBLIGATORIA** — sin `certificate_good_conduct` el expediente no se puede enviar.
+2. **Pasaporte: solo extranjeros**, y también aceptado como alternativa si la persona no tiene CIN.
+3. **Método por defecto: `documental`.** La cita presencial (`verification_scheduled`)
+   **no es necesaria por defecto**; solo si la administración no tiene información suficiente
+   (flujo `needs_information` → cita → decisión).
+4. **Comunas del lanzamiento: PENDIENTE** (en duda). Propuesta de partida para confirmar:
+   área metropolitana del Ouest — Port-au-Prince, Delmas, Pétion-Ville, Carrefour, Tabarre.
+5. **Consentimiento de identidad: borrador propuesto abajo (sección 5), editable por el fundador.**
 
-## 5. Plan técnico por pasos (cada uno verificable en GitHub Actions)
+## 5. Borrador de consentimiento para datos de identidad (propuesto, editable)
+
+- **Français** : « En soumettant vos documents d'identité, vous autorisez KouriGo à les traiter
+  uniquement pour vérifier votre identité de livreur. Ils sont conservés dans un espace privé et
+  seuls les membres de l'équipe de vérification peuvent les consulter. »
+- **Kreyòl ayisyen** : « Lè ou voye dokiman idantite ou, ou bay KouriGo pèmèt trete yo sèlman pou
+  verifye idantite livè ou. Yo nan yon espas prive, epi sèlman ekip verifikasyon an ka wè yo. »
+- **Español** : « Al enviar tus documentos de identidad, autorizas a KouriGo a tratarlos únicamente
+  para verificar tu identidad de repartidor. Quedan en un espacio privado y solo el equipo de
+  verificación puede verlos. »
+
+## 6. Plan técnico por pasos (cada uno verificable en GitHub Actions)
 
 | Paso | Entregable | Verificación |
 |---|---|---|
 | 1 | Pantalla de registro de repartidor + `courier_profile` real | E2E: crear perfil bajo RLS; negación para otro usuario |
-| 2 | Subida de documentos al bucket privado | E2E: subir, leer propio, URL firmada de administración, 403 a terceros |
-| 3 | Envío y estado del expediente | E2E: `draft → submitted → needs_information → approved` por la función real |
+| 2 | Subida de documentos (buena conducta obligatoria) al bucket privado + consentimiento | E2E: subir, leer propio, URL firmada de administración, 403 a terceros; envío rechazado sin buena conducta |
+| 3 | Envío y estado del expediente (método documental por defecto) | E2E: `draft → submitted → needs_information → approved` por la función real |
 | 4 | APK nueva publicada en el release fijo | Workflow «APK de prueba (Android)» verde + verificación del bundle |
 
 Sin simulaciones: todas las pantallas contra las tablas, el bucket y las funciones reales
 (ADR-0001). Dependencia nueva prevista: `expo-image-picker` instalada vía `npm` en CI con
 permisos nativos declarados en `apps/mobile/app.json` antes del `prebuild`.
+
+## 7. Ventana 3 del diseño — seguimiento con mapa (estado honesto: NO implementado)
+
+De las 3 ventanas de la maqueta, la tercera («Suivi en temps réel») está **parcialmente**
+implementada: la línea de tiempo del pedido SÍ existe en el detalle (componente
+`LineaTiempoEventos`, eventos reales de `order_events`), pero **el mapa no está implementado ni
+verificado**: la pantalla `PantallaSeguimientoTiempoReal` del kit no está conectada a ninguna
+ruta y no hay proveedor de mapas.
+
+Plan propuesto (requiere luz verde; dependencias nativas nuevas):
+
+1. Mapa con mosaicos gratuitos de **OpenStreetMap** (`react-native-maps` + `UrlTile`, sin clave
+   de API ni coste), declarado en `apps/mobile/app.json` antes del `prebuild`.
+2. Posición del repartidor compartida **solo con la app abierta** (sin rastreo en segundo plano
+   en el MVP): tabla nueva de posiciones + canal Realtime de Supabase (ADR-0001) o transición
+   por la función existente; sin posiciones simuladas.
+3. Conexión de `PantallaSeguimientoTiempoReal` al pedido real del cliente: estado, eventos y
+   posición del repartidor asignado; sin asignación real, estado vacío honesto.
+4. Privacidad: consentimiento explícito del repartidor para compartir posición durante las
+   entregas activas.
