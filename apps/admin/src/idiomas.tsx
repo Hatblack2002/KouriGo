@@ -214,6 +214,48 @@ const CLAVES = [
   "doc_selfie",
   "doc_certificate_good_conduct",
   "doc_driver_license",
+  "etiqueta_marca",
+  "nav_livreurs",
+  "nav_verificacion",
+  "soporte_admin",
+  "subtitulo_verificacion",
+  "subtitulo_resumen",
+  "subtitulo_pedidos",
+  "subtitulo_livreurs",
+  "subtitulo_auditoria",
+  "kpi_en_atant",
+  "kpi_en_cours",
+  "kpi_apwouve",
+  "lista_demandas",
+  "buscar_livreur",
+  "buscar_pedido",
+  "seleccionar_caso_vacio",
+  "sin_solicitudes_titulo",
+  "docs_privados_nota",
+  "revisor_asignado",
+  "administrador_rol",
+  "metodo_documental",
+  "metodo_videoconferencia",
+  "metodo_presencial",
+  "doc_estado_accepted",
+  "doc_estado_pending",
+  "doc_estado_rejected",
+  "accion_iniciar_revision",
+  "accion_pedir_info",
+  "accion_programar_verif",
+  "accion_aprobar_livreur",
+  "accion_rechazar_dossier",
+  "accion_suspender",
+  "accion_reverificacion",
+  "accion_expirar",
+  "col_zona",
+  "col_disponible",
+  "col_cuenta",
+  "cuenta_activa",
+  "cuenta_inactiva",
+  "disponible_si",
+  "disponible_no",
+  "sin_couriers_registrados",
 ] as const;
 
 export type ClaveTexto = (typeof CLAVES)[number];
@@ -420,6 +462,49 @@ const TEXTOS_HT: Record<ClaveTexto, string> = {
   doc_selfie: "selfie",
   doc_certificate_good_conduct: "certificat de bonnes vie et mœurs",
   doc_driver_license: "permis de conduire",
+  etiqueta_marca: "Livrezon • Achte pou mwen",
+  nav_livreurs: "Livrè yo",
+  nav_verificacion: "Verifikasyon",
+  soporte_admin: "Sipò Admin",
+  subtitulo_verificacion: "Egzamen dosye yo ak otorizasyon operasyonèl",
+  subtitulo_resumen: "Aperisi operasyonèl ak metrik reyèl",
+  subtitulo_pedidos: "Jesyon ak swivi kòmand reyèl yo",
+  subtitulo_livreurs: "Rejis livrè ki anrejistre nan platfòm nan",
+  subtitulo_auditoria: "Istorik operasyon sansib ak verifikasyon yo",
+  kpi_en_atant: "An atant",
+  kpi_en_cours: "An kou",
+  kpi_apwouve: "Apwouve",
+  lista_demandas: "Lis demann yo",
+  buscar_livreur: "Chèche yon livrè...",
+  buscar_pedido: "Chèche yon kòmand...",
+  seleccionar_caso_vacio:
+    "Chwazi yon dosye nan lis la oswa tann premye demann yon livrè nan baz done a.",
+  sin_solicitudes_titulo: "Okenn demann anrejistre",
+  docs_privados_nota: "Dokiman prive — aksè otorize",
+  revisor_asignado: "Revizè asiyen",
+  administrador_rol: "Administratè",
+  metodo_documental: "Egzamen dokimantè",
+  metodo_videoconferencia: "Videyokonferans",
+  metodo_presencial: "An pèsòn",
+  doc_estado_accepted: "Resevwa",
+  doc_estado_pending: "Pou verifye",
+  doc_estado_rejected: "Refize",
+  accion_iniciar_revision: "Kòmanse egzamen",
+  accion_pedir_info: "Mande enfòmasyon",
+  accion_programar_verif: "Pwograme verifikasyon",
+  accion_aprobar_livreur: "Apwouve livrè a",
+  accion_rechazar_dossier: "Refize dosye a",
+  accion_suspender: "Sispann",
+  accion_reverificacion: "Mande reverifikasyon",
+  accion_expirar: "Make ekspire",
+  col_zona: "Zòn travay",
+  col_disponible: "Disponiblite",
+  col_cuenta: "Kont",
+  cuenta_activa: "Aktif",
+  cuenta_inactiva: "Inaktif",
+  disponible_si: "An liy",
+  disponible_no: "Òf liy",
+  sin_couriers_registrados: "Poko gen okenn livrè ki anrejistre oswa apwouve nan platfòm nan.",
 };
 
 const TEXTOS_FR: Record<ClaveTexto, string> = {
@@ -622,6 +707,50 @@ const TEXTOS_FR: Record<ClaveTexto, string> = {
   doc_selfie: "selfie",
   doc_certificate_good_conduct: "certificat de bonnes vie et mœurs",
   doc_driver_license: "permis de conduire",
+  etiqueta_marca: "Livraison • Achat assisté",
+  nav_livreurs: "Livreurs",
+  nav_verificacion: "Vérification",
+  soporte_admin: "Support Admin",
+  subtitulo_verificacion: "Examen des dossiers et autorisation opérationnelle",
+  subtitulo_resumen: "Aperçu opérationnel et métriques réelles",
+  subtitulo_pedidos: "Gestion et suivi des commandes réelles",
+  subtitulo_livreurs: "Répertoire des livreurs enregistrés sur la plateforme",
+  subtitulo_auditoria: "Journal des opérations sensibles et vérifications",
+  kpi_en_atant: "En attente",
+  kpi_en_cours: "En cours",
+  kpi_apwouve: "Approuvés",
+  lista_demandas: "Liste des demandes",
+  buscar_livreur: "Rechercher un livreur...",
+  buscar_pedido: "Rechercher une commande...",
+  seleccionar_caso_vacio:
+    "Sélectionnez un dossier dans la liste ou attendez la première demande d'un livreur dans la base.",
+  sin_solicitudes_titulo: "Aucune demande enregistrée",
+  docs_privados_nota: "Documents privés — accès autorisé",
+  revisor_asignado: "Réviseur assigné",
+  administrador_rol: "Administrateur",
+  metodo_documental: "Examen documentaire",
+  metodo_videoconferencia: "Visioconférence",
+  metodo_presencial: "Présentiel",
+  doc_estado_accepted: "Reçu",
+  doc_estado_pending: "À vérifier",
+  doc_estado_rejected: "Rejeté",
+  accion_iniciar_revision: "Démarrer la révision",
+  accion_pedir_info: "Demander des informations",
+  accion_programar_verif: "Programmer vérification",
+  accion_aprobar_livreur: "Approuver le livreur",
+  accion_rechazar_dossier: "Rejeter le dossier",
+  accion_suspender: "Suspendre",
+  accion_reverificacion: "Demander revérification",
+  accion_expirar: "Marquer expiré",
+  col_zona: "Zone de travail",
+  col_disponible: "Disponibilité",
+  col_cuenta: "Compte",
+  cuenta_activa: "Actif",
+  cuenta_inactiva: "Inactif",
+  disponible_si: "En ligne",
+  disponible_no: "Hors ligne",
+  sin_couriers_registrados:
+    "Aucun livreur enregistré ou approuvé sur la plateforme pour le moment.",
 };
 
 const TEXTOS_ES: Record<ClaveTexto, string> = {
@@ -823,6 +952,49 @@ const TEXTOS_ES: Record<ClaveTexto, string> = {
   doc_selfie: "selfie",
   doc_certificate_good_conduct: "certificat de bonnes vie et mœurs",
   doc_driver_license: "permis de conduire",
+  etiqueta_marca: "Entrega • Compra asistida",
+  nav_livreurs: "Repartidores",
+  nav_verificacion: "Verificación",
+  soporte_admin: "Soporte Admin",
+  subtitulo_verificacion: "Revisión de expedientes y autorización operativa",
+  subtitulo_resumen: "Resumen operativo y métricas reales",
+  subtitulo_pedidos: "Gestión y seguimiento de pedidos reales",
+  subtitulo_livreurs: "Directorio de repartidores registrados en la plataforma",
+  subtitulo_auditoria: "Registro de operaciones sensibles y verificaciones",
+  kpi_en_atant: "En espera",
+  kpi_en_cours: "En curso",
+  kpi_apwouve: "Aprobados",
+  lista_demandas: "Lista de solicitudes",
+  buscar_livreur: "Buscar un repartidor...",
+  buscar_pedido: "Buscar un pedido...",
+  seleccionar_caso_vacio:
+    "Selecciona un expediente de la lista o espera la primera solicitud de un repartidor en la base de datos.",
+  sin_solicitudes_titulo: "Sin solicitudes registradas",
+  docs_privados_nota: "Documentos privados — acceso autorizado",
+  revisor_asignado: "Revisor asignado",
+  administrador_rol: "Administrador",
+  metodo_documental: "Examen documental",
+  metodo_videoconferencia: "Videoconferencia",
+  metodo_presencial: "Presencial",
+  doc_estado_accepted: "Recibido",
+  doc_estado_pending: "Por verificar",
+  doc_estado_rejected: "Rechazado",
+  accion_iniciar_revision: "Iniciar revisión",
+  accion_pedir_info: "Solicitar información",
+  accion_programar_verif: "Programar verificación",
+  accion_aprobar_livreur: "Aprobar repartidor",
+  accion_rechazar_dossier: "Rechazar expediente",
+  accion_suspender: "Suspender",
+  accion_reverificacion: "Solicitar reverificación",
+  accion_expirar: "Marcar expirado",
+  col_zona: "Zona de trabajo",
+  col_disponible: "Disponibilidad",
+  col_cuenta: "Cuenta",
+  cuenta_activa: "Activo",
+  cuenta_inactiva: "Inactivo",
+  disponible_si: "Disponible",
+  disponible_no: "No disponible",
+  sin_couriers_registrados: "Aún no hay repartidores registrados o aprobados en la plataforma.",
 };
 
 export const TEXTOS: Record<Idioma, Record<ClaveTexto, string>> = {
@@ -915,17 +1087,18 @@ export function useIdioma(): ContextoIdioma {
 export function SelectorIdioma() {
   const { idioma, fijarIdioma, t } = useIdioma();
   return (
-    <select
-      className="selector-idioma"
-      value={idioma}
-      aria-label={t("idioma")}
-      onChange={(e) => fijarIdioma(e.target.value as Idioma)}
-    >
+    <div className="selector-idioma-tabs" role="group" aria-label={t("idioma")}>
       {IDIOMAS.map((codigo) => (
-        <option key={codigo} value={codigo}>
+        <button
+          key={codigo}
+          type="button"
+          className={codigo === idioma ? "idioma-tab activo" : "idioma-tab"}
+          onClick={() => fijarIdioma(codigo)}
+          aria-pressed={codigo === idioma}
+        >
           {ETIQUETA_IDIOMA[codigo]}
-        </option>
+        </button>
       ))}
-    </select>
+    </div>
   );
 }

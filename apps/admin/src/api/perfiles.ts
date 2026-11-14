@@ -20,6 +20,11 @@ export interface FilaCourierPerfil {
   readonly updated_at: string;
 }
 
+export interface FilaCourierDirectorio extends FilaCourierPerfil {
+  readonly work_zone: string | null;
+  readonly available: boolean;
+}
+
 export async function listarPerfiles(
   cliente: SupabaseClient,
   limite = 500,
@@ -53,4 +58,23 @@ export async function listarRepartidoresOperativos(
     return { filas: [], error: error.message };
   }
   return { filas: (data ?? []) as unknown as FilaCourierPerfil[], error: null };
+}
+
+/**
+ * Directorio completo de perfiles de repartidor visibles para el administrador
+ * bajo RLS (sin filtrar por estado, para la vista «Livreurs»).
+ */
+export async function listarTodosPerfilesCourier(
+  cliente: SupabaseClient,
+  limite = 200,
+): Promise<{ filas: FilaCourierDirectorio[]; error: string | null }> {
+  const { data, error } = await cliente
+    .from("courier_profiles")
+    .select("user_id,verification_status,account_active,work_zone,available,updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(limite);
+  if (error !== null) {
+    return { filas: [], error: error.message };
+  }
+  return { filas: (data ?? []) as unknown as FilaCourierDirectorio[], error: null };
 }
