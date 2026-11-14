@@ -1,15 +1,14 @@
 /**
- * KouriGo — aplicación móvil (Etapa 4, rediseño visual 2026-11-13):
- * autenticación real contra Supabase Auth y creación de pedidos conectada
- * al backend real (PostgREST bajo RLS + Edge Function transicion-pedido).
+ * KouriGo — aplicación móvil (Etapa 4 + kit de interfaz de la maqueta):
+ * autenticación real contra Supabase Auth y pedidos conectados al backend
+ * real (PostgREST bajo RLS + Edge Function transicion-pedido).
  *
  * Flujo de entrada según la decisión del fundador (2026-11-13): la primera
  * pantalla es la BIENVENIDA con la marca y la selección de idioma al frente
- * (français primero; kreyòl siempre presente). La elección queda guardada en
- * el dispositivo (AsyncStorage) y se restaura al arrancar. Sin sesión se
- * permanece en bienvenida/inicio/registro; con sesión se entra a la lista.
- * El modo repartidor, el catálogo y el mapa siguen en etapas posteriores:
- * no se simulan.
+ * (français primero; kreyòl siempre presente). Con sesión activa, el rol lo
+ * decide el BACKEND (user_roles, RLS «roles_leer_propio_o_admin»): con rol
+ * courier activo se abre la concha de repartidor; en caso contrario la de
+ * cliente. Nada se decide desde el cliente ni se simula.
  *
  * Navegación por estado sin librerías extra: el alcance exige un flujo
  * completo y verificable, no un mapa de pantallas decorativo.
@@ -17,9 +16,11 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { TipoPedido } from "@kourigo/domain";
 import { PantallaBienvenida } from "./src/pantalla-bienvenida";
 import { PantallaInicioSesion, PantallaRegistro } from "./src/pantalla-autenticacion";
-import { PantallaListaPedidos } from "./src/pantalla-lista-pedidos";
+import { PantallaPrincipalCliente } from "./src/pantalla-principal-cliente";
+import { PantallaPrincipalRepartidor } from "./src/pantalla-principal-repartidor";
 import { PantallaNuevoPedido } from "./src/pantalla-nuevo-pedido";
 import { PantallaDetallePedido } from "./src/pantalla-detalle-pedido";
 import { MensajeError, Marca, COLORES } from "./src/components";
@@ -40,14 +41,15 @@ import {
   suscribirseCambiosSesion,
   type SesionActiva,
 } from "./src/auth";
+import { leerRolesActivos } from "./src/repartidor";
 import { texto, type Idioma } from "./src/i18n";
 
 type Ruta =
   | { readonly nombre: "bienvenida" }
   | { readonly nombre: "inicio" }
   | { readonly nombre: "registro" }
-  | { readonly nombre: "lista" }
-  | { readonly nombre: "nuevo" }
+  | { readonly nombre: "principal" }
+  | { readonly nombre: "nuevo"; readonly tipoInicial: TipoPedido }
   | { readonly nombre: "detalle"; readonly pedidoId: string };
 
 const estilos = StyleSheet.create({
@@ -76,6 +78,7 @@ export default function App() {
   const [cliente, setCliente] = useState<SupabaseClient | null>(null);
   const [configuracion, setConfiguracion] = useState<ConfiguracionPublica | null>(null);
   const [sesion, setSesion] = useState<SesionActiva | null>(null);
+  const [esCourier, setEsCourier] = useState<boolean | null>(null);
   const [ruta, setRuta] = useState<Ruta>({ nombre: "bienvenida" });
   const [errorConfiguracion, setErrorConfiguracion] = useState<string | null>(null);
   const [avisoRegistro, setAvisoRegistro] = useState<string | null>(null);
@@ -101,14 +104,32 @@ export default function App() {
             setIdiomaEstado(idiomaGuardado);
           }
           setSesion(sesionRestaurada);
-          setRuta(sesionRestaurada === null ? { nombre: "bienvenida" } : { nombre: "lista" });
+          setRuta(sesionRestaurada === null ? { nombre: "bienvenida" } : { nombre: "principal" });
+          if (sesionRestaurada !== null) {
+            // Rol efectivo leído del backend también en la sesión restaurada.
+            void leerRolesActivos(clienteApp).then((resultado) => {
+              if (!activo) {
+                return;
+              }
+              setEsCourier(resultado.tipo === "ok" && resultado.datos.includes("courier"));
+            });
+          }
           setCargandoInicial(false);
         },
       );
       cancelar = suscribirseCambiosSesion(clienteApp, (sesionNueva) => {
         setSesion(sesionNueva);
         if (sesionNueva === null) {
+          setEsCourier(null);
           setRuta({ nombre: "bienvenida" });
+        } else {
+          // Rol efectivo leído del backend en cada sesión nueva.
+          void leerRolesActivos(clienteApp).then((resultado) => {
+            if (!activo) {
+              return;
+            }
+            setEsCourier(resultado.tipo === "ok" && resultado.datos.includes("courier"));
+          });
         }
       });
     } catch (error) {
@@ -160,7 +181,7 @@ export default function App() {
           cliente={cliente}
           alIniciar={(sesionNueva) => {
             setSesion(sesionNueva);
-            setRuta({ nombre: "lista" });
+            setRuta({ nombre: "principal" });
           }}
           alVolver={() => setRuta({ nombre: "bienvenida" })}
           alPendienteConfirmacion={() => {
@@ -179,7 +200,7 @@ export default function App() {
           alIniciar={(sesionNueva) => {
             setAvisoRegistro(null);
             setSesion(sesionNueva);
-            setRuta({ nombre: "lista" });
+            setRuta({ nombre: "principal" });
           }}
           alVolver={() => setRuta({ nombre: "bienvenida" })}
         />
@@ -195,13 +216,27 @@ export default function App() {
     );
   }
 
+  if (sesion !== null && esCourier === null) {
+    // El rol efectivo viene del backend (user_roles): mientras se consulta,
+    // se mantiene la pantalla de carga. No se adivina ningún rol.
+    return (
+      <View style={estilos.contenedor}>
+        <View style={estilos.contenidoCentrado}>
+          <Marca idioma={idioma} centrado={true} />
+          <Text style={estilos.textoCargando}>{texto(idioma, "cargando")}</Text>
+        </View>
+      </View>
+    );
+  }
+
   if (ruta.nombre === "nuevo") {
     return (
       <PantallaNuevoPedido
         idioma={idioma}
         cliente={cliente}
+        tipoInicial={ruta.tipoInicial}
         alCreado={(pedidoId) => setRuta({ nombre: "detalle", pedidoId })}
-        alVolver={() => setRuta({ nombre: "lista" })}
+        alVolver={() => setRuta({ nombre: "principal" })}
       />
     );
   }
@@ -213,18 +248,34 @@ export default function App() {
         cliente={cliente}
         configuracion={configuracion}
         pedidoId={ruta.pedidoId}
-        alVolver={() => setRuta({ nombre: "lista" })}
+        alVolver={() => setRuta({ nombre: "principal" })}
+      />
+    );
+  }
+
+  if (esCourier === true) {
+    return (
+      <PantallaPrincipalRepartidor
+        idioma={idioma}
+        alCambiarIdioma={cambiarIdioma}
+        cliente={cliente}
+        configuracion={configuracion}
+        correo={sesion.correo}
+        alCerrarSesion={() => {
+          void cerrarSesion(cliente);
+        }}
       />
     );
   }
 
   return (
-    <PantallaListaPedidos
+    <PantallaPrincipalCliente
       idioma={idioma}
       alCambiarIdioma={cambiarIdioma}
       cliente={cliente}
+      correo={sesion.correo}
       alAbrirDetalle={(pedidoId) => setRuta({ nombre: "detalle", pedidoId })}
-      alNuevoPedido={() => setRuta({ nombre: "nuevo" })}
+      alNuevoPedido={(tipoInicial) => setRuta({ nombre: "nuevo", tipoInicial })}
       alCerrarSesion={() => {
         void cerrarSesion(cliente);
       }}

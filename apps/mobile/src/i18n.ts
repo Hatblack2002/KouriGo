@@ -88,6 +88,28 @@ const CLAVES = [
   "estado_delivered",
   "estado_cancelled",
   "estado_issue",
+  "sin_notificaciones",
+  "sin_notificaciones_detalle",
+  "portefeuille_pendiente",
+  "identidad_pendiente",
+  "expediente_vacio",
+  "cursos_activos",
+  "historique_vacio",
+  "ofertas_vacias",
+  "accion_aceptar",
+  "accion_rechazar",
+  "accion_ir_recogida",
+  "accion_recoger",
+  "accion_en_camino",
+  "accion_entregar",
+  "guardar",
+  "cancelar_edicion",
+  "zona_trabajo",
+  "disponibilidad",
+  "cambios_guardados",
+  "rol_admin",
+  "rol_courier",
+  "rol_cliente",
 ] as const;
 
 export type ClaveTexto = (typeof CLAVES)[number];
@@ -168,6 +190,31 @@ const TEXTOS_HT: Record<ClaveTexto, string> = {
   estado_delivered: "Livre",
   estado_cancelled: "Anile",
   estado_issue: "Pwoblèm",
+  sin_notificaciones: "Pa gen notifikasyon.",
+  sin_notificaciones_detalle:
+    "Notifikasyon yo ap vini nan yon pwochen etap. Nou pa simule anyen.",
+  portefeuille_pendiente:
+    "Pòtfèy la ap vini ak sistèm peman an (etap peman an poko fèt).",
+  identidad_pendiente:
+    "Idantite ou poko verifye. Ou p ap resevwa okenn kòmand pandan validasyon an.",
+  expediente_vacio: "Ou pa gen dosye repatitè ki afiche.",
+  cursos_activos: "Kous ki an kou",
+  historique_vacio: "Pa gen kous ki fini.",
+  ofertas_vacias: "Pa gen kòmand ki pwopoze ou kounye a.",
+  accion_aceptar: "Aksepte",
+  accion_rechazar: "Refize",
+  accion_ir_recogida: "Ale al pwen ramasman an",
+  accion_recoger: "Make kòmand lan ramanse",
+  accion_en_camino: "Kòmanse livrezon an",
+  accion_entregar: "Make kòmand lan livre",
+  guardar: "Sere",
+  cancelar_edicion: "Anile modifikasyon an",
+  zona_trabajo: "Zòn travay ou",
+  disponibilidad: "Disponiblite",
+  cambios_guardados: "Chanjman yo sere.",
+  rol_admin: "Administratè",
+  rol_courier: "Livè",
+  rol_cliente: "Kliyan",
 };
 
 const TEXTOS_FR: Record<ClaveTexto, string> = {
@@ -247,6 +294,31 @@ const TEXTOS_FR: Record<ClaveTexto, string> = {
   estado_delivered: "Livré",
   estado_cancelled: "Annulé",
   estado_issue: "Problème",
+  sin_notificaciones: "Aucune notification.",
+  sin_notificaciones_detalle:
+    "Les notifications arriveront dans une prochaine étape. Rien n'est simulé.",
+  portefeuille_pendiente:
+    "Le portefeuille arrivera avec le système de paiements (étape pagos non réalisée).",
+  identidad_pendiente:
+    "Votre identité n'est pas encore vérifiée. Vous ne recevrez aucune commande pendant la validation.",
+  expediente_vacio: "Vous n'avez pas de dossier de livreur enregistré.",
+  cursos_activos: "Courses en cours",
+  historique_vacio: "Aucune course terminée.",
+  ofertas_vacias: "Aucune commande ne vous est proposée pour l'instant.",
+  accion_aceptar: "Accepter",
+  accion_rechazar: "Refuser",
+  accion_ir_recogida: "Aller au point de ramassage",
+  accion_recoger: "Marquer la commande ramassée",
+  accion_en_camino: "Partir en livraison",
+  accion_entregar: "Marquer la commande livrée",
+  guardar: "Enregistrer",
+  cancelar_edicion: "Annuler la modification",
+  zona_trabajo: "Votre zone de travail",
+  disponibilidad: "Disponibilité",
+  cambios_guardados: "Modifications enregistrées.",
+  rol_admin: "Administrateur",
+  rol_courier: "Livreur",
+  rol_cliente: "Client",
 };
 
 export const TEXTOS: Record<Idioma, Record<ClaveTexto, string>> = {

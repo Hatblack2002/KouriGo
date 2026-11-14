@@ -13,11 +13,37 @@ Aplicación cliente en **React Native + Expo + TypeScript** dentro del monorepo 
 - **Bienvenida con idioma al frente** (decisión del fundador, 2026-11-13): la primera pantalla muestra la marca, el héroe con el eslogan y el selector Français/Kreyòl; el francés entra primero y la elección se guarda en el dispositivo (AsyncStorage) y se restaura al arrancar.
 - **Identidad visual según la maqueta aprobada (2026-11-13)**: verde profundo, tarjetas blancas con bordes suaves, chips de estado coloreados según el estado REAL del pedido y línea de tiempo real de `order_events` en el detalle. Sin imágenes decorativas ni datos simulados.
 
+## Interfaz de la maqueta y conexión real con el backend (2026-11-14)
+
+El kit de interfaz de la maqueta aprobada vive en `src/ui` (tokens, 9 componentes,
+diccionario français/kreyòl y 3 pantallas). La integración conecta al backend
+REAL (ADR-0001) lo que el backend puede respaldar y NO dibuja lo que no existe
+(nada se simula, regla 6):
+
+| Elemento de la maqueta | Estado | Fuente real |
+| --- | --- | --- |
+| Bienvenida con idioma al frente | Conectada | Elección guardada en el dispositivo (fr primero) |
+| Inicio cliente (hero, búsqueda, servicios, promo) | Conectada | Navegación real: losetas → formulario de pedido (delivery / compra asistida); búsqueda → filtro real de «Mis commandes» |
+| Categorías de catálogo | **No mostradas** | No existe catálogo de comercios en el backend |
+| Mes commandes | Conectada | PostgREST bajo RLS (solo pedidos propios), filtro real |
+| Seguimiento (chip + línea de tiempo) | Conectada | `orders.status` + `order_events` (trigger SQL); diagrama de ruta con direcciones reales en vez de mapa |
+| Tarjeta del repartidor en seguimiento | **No mostrada** | RLS: el cliente no puede leer el perfil de otro usuario; tampoco hay tabla de calificaciones |
+| Repartidor: interruptor «En ligne» | Conectada | `courier_profiles.available` (migración 0005); el despacho de ofertas sigue siendo administrativo (Edge Function `despachar-pedido`) |
+| Repartidor: KPI «Aujourd'hui / Livrées» | Conectada | `order_assignments` completed (el trigger fija `completed_at`) |
+| Repartidor: KPI «Note» | **No mostrado** | No existe tabla de calificaciones |
+| Repartidor: zona de ubicación | Conectada | Campo real `courier_profiles.work_zone`, editable en Paramètres |
+| Repartidor: ofertas y cursos | Conectada | Ofertas reales del despacho; aceptar/rechazar/avanzar con Edge Function `transicion-pedido` + RLS de `order_assignments` |
+| Repartidor: identidad verificada | Conectada | `verification_status = approved` (misma regla que `repartidor_aprobado()`) |
+| Notifications / Portefeuille | Estado vacío honesto | Sin push ni pagos todavía: nada se inventa |
+| Historique repartidor | Conectada | Asignaciones `completed` reales |
+| Google Sign-In | **No existe** | Ver «Qué NO incluye» |
+
 ## Qué NO incluye (todavía)
 
-- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, modo repartidor, consola administrativa, iPhone (sin ruta gratuita: TestFlight exige la Apple Developer Program de pago) y publicación en tiendas (el APK de prueba ya se compila en Actions, ver "APK de prueba (Android)").
+- Pagos (etapa 6; nada se presenta como pago real, README sección 6), notificaciones push, consola administrativa, iPhone (sin ruta gratuita: TestFlight exige la Apple Developer Program de pago) y publicación en tiendas (el APK de prueba ya se compila en Actions, ver "APK de prueba (Android)").
+- **Modo repartidor completo de extremo a extremo**: la app ya muestra el panel del repartidor con datos reales (rol leído de `user_roles`, expediente, ofertas, cursos, KPI), pero el alta pública de repartidores y el despacho automático no existen: las ofertas las crea la administración con `despachar-pedido`.
 - **Google Sign-In** (requisito README sección 12.1): NO existe todavía. El proveedor de Google **no está configurado** en el proyecto Supabase (verificado por API el 2026-11-13: solo email está activo) y el cliente OAuth de Google Cloud lo debe crear el fundador. Mientras tanto, el registro real es por e-mail; la app **no muestra** un botón de Google.
-- **Catálogo de comercios, buscador, mapa en tiempo real, chat y calificaciones**: no existen en el MVP actual y **no se simulan** (sin datos falsos, regla 6); lo que muestra la app son pedidos reales del cliente autenticado.
+- **Catálogo de comercios, mapa en tiempo real, chat y calificaciones**: no existen en el MVP actual y **no se simulan** (sin datos falsos, regla 6).
 
 ## Configuración pública (sin claves privilegiadas)
 

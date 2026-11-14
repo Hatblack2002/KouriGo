@@ -119,6 +119,13 @@ interface Props {
   readonly cliente: SupabaseClient;
   readonly alCreado: (pedidoId: string) => void;
   readonly alVolver: () => void;
+  /**
+   * Tipo preseleccionado desde las losetas de servicio de la pantalla de
+   * inicio (Boutiques/Restaurants/Supermarchés -> delivery; Divers ->
+   * assisted_purchase). Es solo la selección inicial del formulario REAL:
+   * el usuario la puede cambiar antes de crear el pedido.
+   */
+  readonly tipoInicial?: TipoPedido;
 }
 
 interface ArticuloFormulario {
@@ -131,8 +138,8 @@ function articuloInicial(): ArticuloFormulario {
   return { descripcion: "", cantidad: "1", precio: "" };
 }
 
-export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver }: Props) {
-  const [tipo, setTipo] = useState<TipoPedido>("delivery");
+export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver, tipoInicial }: Props) {
+  const [tipo, setTipo] = useState<TipoPedido>(tipoInicial ?? "delivery");
   const [recogida, setRecogida] = useState("");
   const [destino, setDestino] = useState("");
   const [comercio, setComercio] = useState("");
