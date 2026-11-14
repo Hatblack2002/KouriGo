@@ -242,7 +242,7 @@ export function PantallaListaPedidos({
           ) : undefined
         }
         ListFooterComponent={
-          modoTab ? null : (
+          modoTab ? undefined : (
             <Pressable onPress={alCerrarSesion} style={estilos.pie}>
               <Text style={estilos.enlaceSalir}>{texto(idioma, "cerrar_sesion")}</Text>
             </Pressable>

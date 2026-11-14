@@ -319,7 +319,7 @@ export function PantallaPrincipalRepartidor({
       clave: "courses",
       etiqueta: textoUI(idioma, "nav_courses"),
       renderIcono: (activo) => (
-        <IconoRuta tamano={18} color={activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo} />
+        <IconoRuta tamano={18} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
@@ -332,7 +332,7 @@ export function PantallaPrincipalRepartidor({
             height: 18,
             borderRadius: 4,
             borderWidth: 2,
-            borderColor: activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo,
+            borderColor: activo ? COLORES.verde : COLORES.grisTexto,
           }}
         />
       ),
@@ -347,7 +347,7 @@ export function PantallaPrincipalRepartidor({
             height: 14,
             borderRadius: 3,
             borderWidth: 2,
-            borderColor: activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo,
+            borderColor: activo ? COLORES.verde : COLORES.grisTexto,
           }}
         />
       ),
@@ -361,7 +361,7 @@ export function PantallaPrincipalRepartidor({
             width: 18,
             height: 18,
             borderRadius: 9,
-            backgroundColor: activo ? COLORES.verdeMedio : COLORES.grisIconoInactivo,
+            backgroundColor: activo ? COLORES.verde : COLORES.grisTexto,
           }}
         />
       ),
