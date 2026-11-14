@@ -1,9 +1,5 @@
 import { Image, StyleSheet, Text, View } from "react-native";
-import {
-  DEGRADADOS_BASE64,
-  ICONOS_BASE64,
-  type NombreIconoUI,
-} from "../assets/iconos-base64";
+import { DEGRADADOS_BASE64, ICONOS_BASE64, type NombreIconoUI } from "../assets/iconos-base64";
 import { COLORES, TIPOGRAFIA } from "../theme/tokens";
 
 export interface IconoUIProps {
@@ -64,10 +60,7 @@ const estilosLogo = StyleSheet.create({
   },
 });
 
-export function LogoKouriGo({
-  subtitulo,
-  colorSubtitulo = COLORES.grisTexto,
-}: LogoKouriGoProps) {
+export function LogoKouriGo({ subtitulo, colorSubtitulo = COLORES.grisTexto }: LogoKouriGoProps) {
   return (
     <View style={estilosLogo.contenedor}>
       <Image

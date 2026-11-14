@@ -327,9 +327,7 @@ export function PantallaClienteInicio({
               <Text style={estilos.tituloSeccion}>{textoUI(idioma, "nos_categories")}</Text>
               {alPulsarVerTodoCategorias !== undefined ? (
                 <Pressable onPress={alPulsarVerTodoCategorias}>
-                  <Text style={estilos.enlaceVerTodo}>
-                    {textoUI(idioma, "voir_tout")} ›
-                  </Text>
+                  <Text style={estilos.enlaceVerTodo}>{textoUI(idioma, "voir_tout")} ›</Text>
                 </Pressable>
               ) : null}
             </View>

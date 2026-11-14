@@ -150,44 +150,28 @@ export function PantallaPrincipalCliente({
       clave: "accueil",
       etiqueta: textoUI(idioma, "nav_accueil"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="home"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="home" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "commandes",
       etiqueta: textoUI(idioma, "nav_mes_commandes"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="orders"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="orders" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "notifications",
       etiqueta: textoUI(idioma, "nav_notifications"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="bell"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="bell" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "profil",
       etiqueta: textoUI(idioma, "nav_profil"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="user"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="user" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
   ];

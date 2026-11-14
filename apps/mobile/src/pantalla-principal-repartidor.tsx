@@ -323,44 +323,28 @@ export function PantallaPrincipalRepartidor({
       clave: "courses",
       etiqueta: textoUI(idioma, "nav_courses"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="scooter"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="scooter" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "historique",
       etiqueta: textoUI(idioma, "nav_historique"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="chart"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="chart" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "portefeuille",
       etiqueta: textoUI(idioma, "nav_portefeuille"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="wallet"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="wallet" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
     {
       clave: "parametres",
       etiqueta: textoUI(idioma, "nav_parametres"),
       renderIcono: (activo) => (
-        <IconoUI
-          nombre="settings"
-          tamano={20}
-          color={activo ? COLORES.verde : COLORES.grisTexto}
-        />
+        <IconoUI nombre="settings" tamano={20} color={activo ? COLORES.verde : COLORES.grisTexto} />
       ),
     },
   ];

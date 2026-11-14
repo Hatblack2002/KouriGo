@@ -17,11 +17,7 @@ export {
   type ClaveTextoUI,
   type Idioma,
 } from "./i18n/diccionario-ui";
-export {
-  DEGRADADOS_BASE64,
-  ICONOS_BASE64,
-  type NombreIconoUI,
-} from "./assets/iconos-base64";
+export { DEGRADADOS_BASE64, ICONOS_BASE64, type NombreIconoUI } from "./assets/iconos-base64";
 export {
   BanderaHaiti,
   FondoDegradado,

@@ -81,12 +81,7 @@ export function InterruptorEnLigne({
   slotFondoDegradado,
 }: InterruptorEnLigneProps) {
   return (
-    <View
-      style={[
-        estilos.contenedor,
-        enLinea ? estilos.fondoActivo : estilos.fondoInactivo,
-      ]}
-    >
+    <View style={[estilos.contenedor, enLinea ? estilos.fondoActivo : estilos.fondoInactivo]}>
       {slotFondoDegradado !== undefined ? (
         <View style={estilos.fondoSlot} pointerEvents="none">
           {slotFondoDegradado}
