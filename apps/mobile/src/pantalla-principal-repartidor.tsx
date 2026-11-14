@@ -25,6 +25,7 @@ import {
   BarraNavegacionInferior,
   BotonPrimario,
   EncabezadoLogo,
+  IconoUI,
   TarjetaPedido,
   textoUI,
   type ElementoNavegacionInferior,
@@ -33,6 +34,9 @@ import { PantallaRepartidorInicio } from "./ui/screens/PantallaRepartidorInicio"
 import { BotonSecundario } from "./ui/components/BotonSecundario";
 import {
   IconoAceptar,
+  IconoCaja,
+  IconoCampana,
+  IconoCheckCirculo,
   IconoEscudo,
   IconoIdioma,
   IconoRuta,
@@ -319,21 +323,21 @@ export function PantallaPrincipalRepartidor({
       clave: "courses",
       etiqueta: textoUI(idioma, "nav_courses"),
       renderIcono: (activo) => (
-        <IconoRuta tamano={18} color={activo ? COLORES.verde : COLORES.grisTexto} />
+        <IconoUI
+          nombre="scooter"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
+        />
       ),
     },
     {
       clave: "historique",
       etiqueta: textoUI(idioma, "nav_historique"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 4,
-            borderWidth: 2,
-            borderColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="chart"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -341,14 +345,10 @@ export function PantallaPrincipalRepartidor({
       clave: "portefeuille",
       etiqueta: textoUI(idioma, "nav_portefeuille"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 20,
-            height: 14,
-            borderRadius: 3,
-            borderWidth: 2,
-            borderColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="wallet"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -356,13 +356,10 @@ export function PantallaPrincipalRepartidor({
       clave: "parametres",
       etiqueta: textoUI(idioma, "nav_parametres"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            backgroundColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="settings"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -425,16 +422,20 @@ export function PantallaPrincipalRepartidor({
           enLineaDeshabilitado={sinPerfil || cargando}
           slotLogo={undefined}
           badgeNotificacionesHeader={undefined}
+          slotIconoCampana={<IconoCampana />}
+          alPulsarCampana={() => setPestaña("parametres")}
           metricas={[
             {
               id: "hoy",
               valor: String(kpis.entregasHoy),
               etiquetaClave: "kpi_hoy",
+              slotIcono: <IconoCaja tamano={20} />,
             },
             {
               id: "totales",
               valor: String(kpis.entregasTotales),
               etiquetaClave: "kpi_entregadas",
+              slotIcono: <IconoCheckCirculo />,
             },
           ]}
           ubicacionTexto={perfil?.work_zone ?? undefined}

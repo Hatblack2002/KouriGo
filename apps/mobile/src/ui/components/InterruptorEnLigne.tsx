@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { textoUI, type Idioma } from "../i18n/diccionario-ui";
 import { COLORES, ESPACIADO, RADIOS, SOMBRAS, TIPOGRAFIA } from "../theme/tokens";
+import { FondoDegradado } from "./IconosUI";
 
 export interface InterruptorEnLigneProps {
   readonly idioma: Idioma;
@@ -29,11 +30,7 @@ const estilos = StyleSheet.create({
     backgroundColor: COLORES.grisTexto,
   },
   fondoSlot: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
   },
   textos: {
     flex: 1,
@@ -84,10 +81,19 @@ export function InterruptorEnLigne({
   slotFondoDegradado,
 }: InterruptorEnLigneProps) {
   return (
-    <View style={[estilos.contenedor, enLinea ? estilos.fondoActivo : estilos.fondoInactivo]}>
+    <View
+      style={[
+        estilos.contenedor,
+        enLinea ? estilos.fondoActivo : estilos.fondoInactivo,
+      ]}
+    >
       {slotFondoDegradado !== undefined ? (
         <View style={estilos.fondoSlot} pointerEvents="none">
           {slotFondoDegradado}
+        </View>
+      ) : enLinea ? (
+        <View style={estilos.fondoSlot} pointerEvents="none">
+          <FondoDegradado tipo="enLigne" />
         </View>
       ) : null}
 

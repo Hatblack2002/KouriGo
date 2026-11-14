@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORES, ESPACIADO, RADIOS, TIPOGRAFIA } from "../theme/tokens";
+import { IconoUI } from "./IconosUI";
 
 export type EstadoPasoTimeline = "completado" | "activo" | "pendiente";
 
@@ -141,16 +142,12 @@ export function LineaTiempoEventos({ eventos }: LineaTiempoEventosProps) {
               >
                 {evento.slotIcono !== undefined ? (
                   evento.slotIcono
+                ) : esCompletado ? (
+                  <IconoUI nombre="check" tamano={13} color={COLORES.blanco} />
+                ) : esActivo ? (
+                  <IconoUI nombre="scooter" tamano={17} color={COLORES.verdeMedio} />
                 ) : (
-                  <View
-                    style={
-                      esCompletado
-                        ? estilos.puntoCompletadoInterno
-                        : esActivo
-                          ? estilos.puntoActivoInterno
-                          : estilos.puntoPendienteInterno
-                    }
-                  />
+                  <View style={estilos.puntoPendienteInterno} />
                 )}
               </View>
 
@@ -166,7 +163,9 @@ export function LineaTiempoEventos({ eventos }: LineaTiempoEventosProps) {
 
             <View style={[estilos.cuerpo, esUltimo ? estilos.cuerpoUltimo : null]}>
               <Text
-                style={evento.estadoPaso === "pendiente" ? estilos.tituloPendiente : estilos.titulo}
+                style={
+                  evento.estadoPaso === "pendiente" ? estilos.tituloPendiente : estilos.titulo
+                }
               >
                 {evento.titulo}
               </Text>

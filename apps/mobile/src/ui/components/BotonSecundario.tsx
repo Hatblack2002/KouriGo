@@ -78,7 +78,10 @@ export function BotonSecundario({
       {slotIconoIzquierda !== undefined ? (
         <View style={estilos.icono}>{slotIconoIzquierda}</View>
       ) : null}
-      <Text style={[estilos.texto, compacto ? estilos.textoCompacto : null]} numberOfLines={1}>
+      <Text
+        style={[estilos.texto, compacto ? estilos.textoCompacto : null]}
+        numberOfLines={1}
+      >
         {etiqueta}
       </Text>
     </Pressable>

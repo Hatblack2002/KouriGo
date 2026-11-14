@@ -18,6 +18,20 @@ export {
   type Idioma,
 } from "./i18n/diccionario-ui";
 export {
+  DEGRADADOS_BASE64,
+  ICONOS_BASE64,
+  type NombreIconoUI,
+} from "./assets/iconos-base64";
+export {
+  BanderaHaiti,
+  FondoDegradado,
+  IconoUI,
+  LogoKouriGo,
+  type FondoDegradadoProps,
+  type IconoUIProps,
+  type LogoKouriGoProps,
+} from "./components/IconosUI";
+export {
   BarraNavegacionInferior,
   type BarraNavegacionInferiorProps,
   type ElementoNavegacionInferior,

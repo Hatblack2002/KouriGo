@@ -6,6 +6,7 @@ import {
 } from "../components/BarraNavegacionInferior";
 import { BotonSecundario } from "../components/BotonSecundario";
 import { EncabezadoLogo } from "../components/EncabezadoLogo";
+import { IconoUI } from "../components/IconosUI";
 import { InterruptorEnLigne } from "../components/InterruptorEnLigne";
 import { TarjetaPedido, type TarjetaPedidoProps } from "../components/TarjetaPedido";
 import { textoUI, type ClaveTextoUI, type Idioma } from "../i18n/diccionario-ui";
@@ -18,10 +19,8 @@ export interface MetricaRepartidor {
   readonly slotIcono?: ReactNode;
 }
 
-export interface PedidoDisponibleItem extends Omit<
-  TarjetaPedidoProps,
-  "idioma" | "textoAccion" | "alPulsarAccion"
-> {
+export interface PedidoDisponibleItem
+  extends Omit<TarjetaPedidoProps, "idioma" | "textoAccion" | "alPulsarAccion"> {
   readonly id: string;
   readonly alAceptar?: () => void;
   readonly alAbrir?: () => void;
@@ -46,11 +45,6 @@ export interface PantallaRepartidorInicioProps {
   readonly slotIconoAceptar?: ReactNode;
   readonly identidadVerificada: boolean;
   readonly slotIconoEscudo?: ReactNode;
-  /**
-   * Sección adicional REAL renderizada al final del scroll (por ejemplo, los
-   * cursos ya aceptados y su siguiente transición). No altera el diseño: es
-   * contenido añadido por la integración.
-   */
   readonly seccionExtra?: ReactNode;
   readonly elementosNav: readonly ElementoNavegacionInferior[];
   readonly tabActiva: string;
@@ -200,7 +194,9 @@ export function PantallaRepartidorInicio({
         subtituloClave="subtitulo_repartidor"
         mostrarSubtituloMarca={false}
         slotLogo={slotLogo}
-        slotDerecha={slotIconoCampana}
+        slotDerecha={
+          slotIconoCampana ?? <IconoUI nombre="bell" tamano={20} color={COLORES.grafito} />
+        }
         alPulsarDerecha={alPulsarCampana}
         badgeDerecha={badgeNotificacionesHeader}
       />
@@ -243,7 +239,9 @@ export function PantallaRepartidorInicio({
 
         {tieneUbicacion ? (
           <View style={estilos.tarjetaUbicacion}>
-            {slotIconoUbicacion}
+            {slotIconoUbicacion ?? (
+              <IconoUI nombre="pin" tamano={20} color={COLORES.verdeMedio} />
+            )}
             <View style={estilos.ubicacionInfo}>
               <Text style={estilos.ubicacionEtiqueta} numberOfLines={1}>
                 {textoUI(idioma, "tu_ubicacion")}
@@ -265,10 +263,14 @@ export function PantallaRepartidorInicio({
         {pedidosDisponibles.length > 0 ? (
           <>
             <View style={estilos.cabeceraSeccion}>
-              <Text style={estilos.tituloSeccion}>{textoUI(idioma, "commandes_disponibles")}</Text>
+              <Text style={estilos.tituloSeccion}>
+                {textoUI(idioma, "commandes_disponibles")}
+              </Text>
               {alPulsarVerTodosPedidos !== undefined ? (
                 <Pressable onPress={alPulsarVerTodosPedidos}>
-                  <Text style={estilos.enlaceVerTodo}>{textoUI(idioma, "voir_tout")} ›</Text>
+                  <Text style={estilos.enlaceVerTodo}>
+                    {textoUI(idioma, "voir_tout")} ›
+                  </Text>
                 </Pressable>
               ) : null}
             </View>
@@ -286,11 +288,19 @@ export function PantallaRepartidorInicio({
                   importeFormateado={pedido.importeFormateado}
                   imagenFuente={pedido.imagenFuente}
                   slotImagen={pedido.slotImagen}
-                  slotIconoDistancia={pedido.slotIconoDistancia}
+                  slotIconoDistancia={
+                    pedido.slotIconoDistancia ?? (
+                      <IconoUI nombre="pin" tamano={13} color={COLORES.grafito} />
+                    )
+                  }
                   textoAccion={
                     pedido.alAceptar !== undefined ? textoUI(idioma, "accepter_course") : undefined
                   }
-                  slotIconoAccion={slotIconoAceptar}
+                  slotIconoAccion={
+                    slotIconoAceptar ?? (
+                      <IconoUI nombre="arrowRight" tamano={16} color={COLORES.blanco} />
+                    )
+                  }
                   alPulsarAccion={pedido.alAceptar}
                   alPulsarTarjeta={pedido.alAbrir}
                   accionDeshabilitada={pedido.accionDeshabilitada}
@@ -302,17 +312,21 @@ export function PantallaRepartidorInicio({
 
         {identidadVerificada ? (
           <View style={estilos.tarjetaVerificada}>
-            {slotIconoEscudo}
+            {slotIconoEscudo ?? (
+              <IconoUI nombre="shieldCheck" tamano={24} color={COLORES.verdeProfundo} />
+            )}
             <View style={estilos.verificadaTextos}>
               <Text style={estilos.verificadaTitulo}>
                 {textoUI(idioma, "identidad_verificada")}
               </Text>
-              <Text style={estilos.verificadaSubtitulo}>{textoUI(idioma, "respetar_reglas")}</Text>
+              <Text style={estilos.verificadaSubtitulo}>
+                {textoUI(idioma, "respetar_reglas")}
+              </Text>
             </View>
           </View>
         ) : null}
 
-        {seccionExtra !== undefined ? seccionExtra : null}
+        {seccionExtra}
       </ScrollView>
 
       <BarraNavegacionInferior

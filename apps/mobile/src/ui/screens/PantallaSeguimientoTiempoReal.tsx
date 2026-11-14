@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text, View, type ImageSourcePropType } from "react-native";
 import { ChipEstado } from "../components/ChipEstado";
 import { EncabezadoLogo } from "../components/EncabezadoLogo";
-import { LineaTiempoEventos, type EventoLineaTiempo } from "../components/LineaTiempoEventos";
+import { IconoUI } from "../components/IconosUI";
+import {
+  LineaTiempoEventos,
+  type EventoLineaTiempo,
+} from "../components/LineaTiempoEventos";
 import { TarjetaPerfilRepartidor } from "../components/TarjetaPerfilRepartidor";
 import { textoUI, type Idioma } from "../i18n/diccionario-ui";
 import { COLORES, ESPACIADO, RADIOS, TIPOGRAFIA } from "../theme/tokens";
@@ -96,8 +100,16 @@ export function PantallaSeguimientoTiempoReal({
         idioma={idioma}
         variante="titulo"
         tituloClave="suivi_de_commande"
-        slotIzquierda={slotIconoVolver}
-        slotDerecha={slotIconoSoporte}
+        slotIzquierda={
+          slotIconoVolver ?? <IconoUI nombre="back" tamano={20} color={COLORES.grafito} />
+        }
+        slotDerecha={
+          alPulsarSoporte !== undefined
+            ? (slotIconoSoporte ?? (
+                <IconoUI nombre="headset" tamano={20} color={COLORES.grafito} />
+              ))
+            : slotIconoSoporte
+        }
         alPulsarIzquierda={alVolver}
         alPulsarDerecha={alPulsarSoporte}
       />
@@ -131,9 +143,21 @@ export function PantallaSeguimientoTiempoReal({
             entregasTexto={repartidor.entregasTexto}
             avatarFuente={repartidor.avatarFuente}
             slotAvatar={repartidor.slotAvatar}
-            slotIconoEstrella={slotIconoEstrella}
-            slotIconoLlamar={slotIconoLlamar}
-            slotIconoChat={slotIconoChat}
+            slotIconoEstrella={
+              slotIconoEstrella ?? (
+                <IconoUI nombre="star" tamano={14} color={COLORES.amarilloEstrella} />
+              )
+            }
+            slotIconoLlamar={
+              slotIconoLlamar ?? (
+                <IconoUI nombre="phone" tamano={16} color={COLORES.verdeProfundo} />
+              )
+            }
+            slotIconoChat={
+              slotIconoChat ?? (
+                <IconoUI nombre="chat" tamano={16} color={COLORES.verdeProfundo} />
+              )
+            }
             alPulsarLlamar={alPulsarLlamar}
             alPulsarChat={alPulsarChat}
           />

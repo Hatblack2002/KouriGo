@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { textoUI, type ClaveTextoUI, type Idioma } from "../i18n/diccionario-ui";
 import { COLORES, ESPACIADO, RADIOS, TIPOGRAFIA } from "../theme/tokens";
+import { LogoKouriGo } from "./IconosUI";
 
 export interface EncabezadoLogoProps {
   readonly idioma: Idioma;
@@ -116,7 +117,12 @@ export function EncabezadoLogo({
   const mostrarBadge = badgeDerecha !== undefined && badgeDerecha > 0;
 
   return (
-    <View style={[estilos.contenedor, variante === "titulo" ? estilos.contenedorConBorde : null]}>
+    <View
+      style={[
+        estilos.contenedor,
+        variante === "titulo" ? estilos.contenedorConBorde : null,
+      ]}
+    >
       <View style={estilos.ladoIzquierdo}>
         {slotIzquierda !== undefined ? (
           alPulsarIzquierda !== undefined ? (
@@ -143,20 +149,19 @@ export function EncabezadoLogo({
             {slotLogo !== undefined ? (
               slotLogo
             ) : (
-              <View style={estilos.marcaFila}>
-                <Text style={estilos.marcaKouri}>Kouri</Text>
-                <Text style={estilos.marcaGo}>Go</Text>
-              </View>
+              <LogoKouriGo
+                subtitulo={
+                  subtituloClave !== undefined
+                    ? textoUI(idioma, subtituloClave)
+                    : mostrarSubtituloMarca
+                      ? textoUI(idioma, "etiqueta_marca")
+                      : undefined
+                }
+                colorSubtitulo={
+                  subtituloClave !== undefined ? COLORES.verdeMedio : COLORES.grisTexto
+                }
+              />
             )}
-            {subtituloClave !== undefined ? (
-              <Text style={estilos.subtituloRol} numberOfLines={1}>
-                {textoUI(idioma, subtituloClave)}
-              </Text>
-            ) : mostrarSubtituloMarca ? (
-              <Text style={estilos.marcaSubtitulo} numberOfLines={1}>
-                {textoUI(idioma, "etiqueta_marca")}
-              </Text>
-            ) : null}
           </>
         )}
       </View>

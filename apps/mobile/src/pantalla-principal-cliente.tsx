@@ -31,9 +31,10 @@ import {
   IconoBuscar,
   IconoDivers,
   IconoFlecha,
+  BanderaHaiti,
   IconoIdioma,
+  IconoMenu,
   IconoRestaurante,
-  IconoRuta,
   IconoSupermercado,
 } from "./iconos-maqueta";
 import { Aviso, BarraIdiomas, MensajeError, COLORES } from "./components";
@@ -149,13 +150,10 @@ export function PantallaPrincipalCliente({
       clave: "accueil",
       etiqueta: textoUI(idioma, "nav_accueil"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 6,
-            backgroundColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="home"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -163,21 +161,21 @@ export function PantallaPrincipalCliente({
       clave: "commandes",
       etiqueta: textoUI(idioma, "nav_mes_commandes"),
       renderIcono: (activo) => (
-        <IconoRuta tamano={18} color={activo ? COLORES.verde : COLORES.grisTexto} />
+        <IconoUI
+          nombre="orders"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
+        />
       ),
     },
     {
       clave: "notifications",
       etiqueta: textoUI(idioma, "nav_notifications"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            borderWidth: 2,
-            borderColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="bell"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -185,13 +183,10 @@ export function PantallaPrincipalCliente({
       clave: "profil",
       etiqueta: textoUI(idioma, "nav_profil"),
       renderIcono: (activo) => (
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            backgroundColor: activo ? COLORES.verde : COLORES.grisTexto,
-          }}
+        <IconoUI
+          nombre="user"
+          tamano={20}
+          color={activo ? COLORES.verde : COLORES.grisTexto}
         />
       ),
     },
@@ -233,14 +228,38 @@ export function PantallaPrincipalCliente({
           busqueda={busqueda}
           alCambiarBusqueda={setBusqueda}
           alEnviarBusqueda={() => setPestaña("commandes")}
-          slotBanderaIdioma={<IconoIdioma />}
-          alPulsarIdioma={() => setPestaña("profil")}
+          slotIconoMenu={<IconoMenu />}
+          alPulsarMenu={() => setPestaña("profil")}
+          slotBanderaIdioma={<BanderaHaiti />}
+          alPulsarIdioma={() => alCambiarIdioma(idioma === "fr" ? "ht" : "fr")}
           slotIconoBuscar={<IconoBuscar />}
-          slotImagenHero={<IconoRuta tamano={44} />}
           servicios={servicios}
           alPulsarPedidoRapido={() => alNuevoPedido("delivery")}
           slotIconoFlechaPromo={<IconoFlecha />}
-          categorias={[]}
+          categorias={[
+            {
+              id: "electronique",
+              etiquetaClave: "cat_electronique",
+              alPulsar: () => alNuevoPedido("assisted_purchase"),
+            },
+            {
+              id: "mode",
+              etiquetaClave: "cat_mode",
+              alPulsar: () => alNuevoPedido("assisted_purchase"),
+            },
+            {
+              id: "maison",
+              etiquetaClave: "cat_maison",
+              alPulsar: () => alNuevoPedido("assisted_purchase"),
+            },
+            {
+              id: "plus",
+              etiquetaClave: "cat_plus",
+              slotImagen: <IconoUI nombre="gridPlus" tamano={24} color={COLORES.grafito} />,
+              alPulsar: () => alNuevoPedido("delivery"),
+            },
+          ]}
+          alPulsarVerTodoCategorias={() => alNuevoPedido("assisted_purchase")}
           elementosNav={elementosNav}
           tabActiva={pestaña}
           alCambiarTab={(clave) => setPestaña(clave as PestañaCliente)}

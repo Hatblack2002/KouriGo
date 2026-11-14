@@ -24,6 +24,7 @@ import {
   ChipEstado as ChipMaqueta,
   EncabezadoLogo,
   etiquetaEstadoUI,
+  IconoUI,
   LineaTiempoEventos,
   type EventoLineaTiempo,
   COLORES as COLORES_MAQUETA,
@@ -276,7 +277,7 @@ export function PantallaDetallePedido({
         idioma={idioma}
         variante="titulo"
         tituloClave="suivi_de_commande"
-        slotIzquierda={<Text style={estilos.iconoVolver}>←</Text>}
+        slotIzquierda={<IconoUI nombre="back" tamano={20} color={COLORES_MAQUETA.grafito} />}
         alPulsarIzquierda={alVolver}
       />
       <ScrollView

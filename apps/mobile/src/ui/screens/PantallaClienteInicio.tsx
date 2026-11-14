@@ -15,6 +15,7 @@ import {
 import { BotonPrimario } from "../components/BotonPrimario";
 import { CampoBusqueda } from "../components/CampoBusqueda";
 import { EncabezadoLogo } from "../components/EncabezadoLogo";
+import { BanderaHaiti, FondoDegradado, IconoUI } from "../components/IconosUI";
 import { textoUI, type ClaveTextoUI, type Idioma } from "../i18n/diccionario-ui";
 import { COLORES, ESPACIADO, RADIOS, SOMBRAS, TIPOGRAFIA } from "../theme/tokens";
 
@@ -80,11 +81,7 @@ const estilos = StyleSheet.create({
     ...SOMBRAS.tarjeta,
   },
   fondoSlot: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
   },
   heroMediaSlot: {
     width: 112,
@@ -249,8 +246,10 @@ export function PantallaClienteInicio({
         variante="marca"
         mostrarSubtituloMarca={true}
         slotLogo={slotLogo}
-        slotIzquierda={slotIconoMenu}
-        slotDerecha={slotBanderaIdioma}
+        slotIzquierda={
+          slotIconoMenu ?? <IconoUI nombre="menu" tamano={20} color={COLORES.grafito} />
+        }
+        slotDerecha={slotBanderaIdioma ?? <BanderaHaiti />}
         alPulsarIzquierda={alPulsarMenu}
         alPulsarDerecha={alPulsarIdioma}
       />
@@ -260,11 +259,9 @@ export function PantallaClienteInicio({
         showsVerticalScrollIndicator={false}
       >
         <View style={estilos.heroTarjeta}>
-          {slotFondoDegradadoHero !== undefined ? (
-            <View style={estilos.fondoSlot} pointerEvents="none">
-              {slotFondoDegradadoHero}
-            </View>
-          ) : null}
+          <View style={estilos.fondoSlot} pointerEvents="none">
+            {slotFondoDegradadoHero ?? <FondoDegradado tipo="hero" />}
+          </View>
           <View style={estilos.heroMediaSlot}>{slotImagenHero}</View>
           <View style={estilos.heroTextoContenedor}>
             <Text style={estilos.heroTitulo}>{textoUI(idioma, "eslogan_hero")}</Text>
@@ -277,7 +274,11 @@ export function PantallaClienteInicio({
           valor={busqueda}
           alCambiar={alCambiarBusqueda}
           alEnviar={alEnviarBusqueda}
-          slotIcono={slotIconoBuscar}
+          slotIcono={
+            slotIconoBuscar ?? (
+              <IconoUI nombre="search" tamano={18} color={COLORES.grisIconoInactivo} />
+            )
+          }
         />
 
         {servicios.length > 0 ? (
@@ -301,11 +302,9 @@ export function PantallaClienteInicio({
         ) : null}
 
         <View style={estilos.promoTarjeta}>
-          {slotFondoDegradadoPromo !== undefined ? (
-            <View style={estilos.fondoSlot} pointerEvents="none">
-              {slotFondoDegradadoPromo}
-            </View>
-          ) : null}
+          <View style={estilos.fondoSlot} pointerEvents="none">
+            {slotFondoDegradadoPromo ?? <FondoDegradado tipo="promo" />}
+          </View>
           <View style={estilos.promoMediaSlot}>{slotIlustracionPromo}</View>
           <View style={estilos.promoContenido}>
             <Text style={estilos.promoTitulo}>{textoUI(idioma, "promo_rapida")}</Text>
@@ -313,7 +312,11 @@ export function PantallaClienteInicio({
               etiqueta={textoUI(idioma, "commander_maintenant")}
               alPulsar={alPulsarPedidoRapido}
               compacto={true}
-              slotIconoDerecha={slotIconoFlechaPromo}
+              slotIconoDerecha={
+                slotIconoFlechaPromo ?? (
+                  <IconoUI nombre="arrowRight" tamano={14} color={COLORES.blanco} />
+                )
+              }
             />
           </View>
         </View>
@@ -324,7 +327,9 @@ export function PantallaClienteInicio({
               <Text style={estilos.tituloSeccion}>{textoUI(idioma, "nos_categories")}</Text>
               {alPulsarVerTodoCategorias !== undefined ? (
                 <Pressable onPress={alPulsarVerTodoCategorias}>
-                  <Text style={estilos.enlaceVerTodo}>{textoUI(idioma, "voir_tout")} ›</Text>
+                  <Text style={estilos.enlaceVerTodo}>
+                    {textoUI(idioma, "voir_tout")} ›
+                  </Text>
                 </Pressable>
               ) : null}
             </View>
