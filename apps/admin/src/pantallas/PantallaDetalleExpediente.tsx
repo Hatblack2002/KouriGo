@@ -244,6 +244,8 @@ export function PanelDetalleExpediente({
         return t("accion_reverificacion");
       case "expirar":
         return t("accion_expirar");
+      default:
+        return decision;
     }
   }
 
