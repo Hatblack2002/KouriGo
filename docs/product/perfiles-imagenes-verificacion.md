@@ -1,8 +1,8 @@
 # Perfiles, imágenes y verificación — definición de producto
 
-> Estado (2026-11-15): credenciales recibidas y configuradas; la Edge
-> Function `subir-imagen` está implementada, desplegada al runtime y
-> probada E2E (ver sección 8). Siguiente paso: migración 0006 y la APK.
+> Estado (2026-11-15): pasos 1, 2 y 3 completados con evidencia (secciones
+> 8 y 9). Siguiente paso: insignia/certificado/inspección en la APK (paso 4)
+> y catálogo admin con fotos (paso 5).
 
 ---
 
@@ -172,7 +172,8 @@ con la insignia y la navegación a la pantalla de inspección.
 
 1. **Migración 0006:** columnas de perfil cliente en `profiles` + RPC
    `perfil_publico_repartidor` + políticas RLS. Verificación: CI de base de
-   datos verde. — **PENDIENTE**
+   datos verde. — **HECHO** (commit `a6b19ca`; aplicada al proyecto real;
+   pruebas positivas y negativas en CI verde, incluida la sección 9)
 2. **Edge Function `subir-imagen`:** autenticación Supabase; cliente sube
    solo su avatar (`avatares/<user_id>/`), admin sube solo catálogo
    (`catalogo/<categoria>/`); firma Cloudinary server-side; devuelve
@@ -183,7 +184,8 @@ con la insignia y la navegación a la pantalla de inspección.
 3. **APK — Mi cuenta editable:** pantalla con los 7 campos, validación
    +509, selector de departamento, subida de foto camuflada, y prellenado
    de la dirección al crear pedido. Verificación: APK nueva, cadenas de
-   texto presentes en el bundle. — **PENDIENTE**
+   texto presentes en el bundle. — **HECHO** (commit `2407ff8` + fixups
+   `2ed0acc`/`a49c3ac`; APK de prueba reconstruida y verificada, sección 9)
 4. **APK — insignia + certificado + inspección:** insignia junto al nombre,
    certificado en el perfil del repartidor, vista de inspección para el
    cliente desde su pedido. Verificación: APK nueva. — **PENDIENTE**
@@ -211,3 +213,25 @@ eliminado en la misma prueba (no queda ningún dato falso):
 Además: plan Cloudinary verificado Free con 2.72 % de créditos usados;
 credenciales validadas contra `/ping` (`status: ok`); sin token la función
 responde 401 (verificado por el workflow en el runtime).
+
+
+## 9. Evidencia del paso 3 — APK «Mi cuenta» (2026-11-15)
+
+APK de prueba reconstruida por el workflow `APK de prueba (Android)` sobre
+el commit `a49c3ac` y descargada de la etiqueta `prueba-apk`. Verificación
+del bundle dentro del APK (todas las cadenas presentes en los dos idiomas):
+
+| Cadena | Idioma | En el APK |
+|--------|--------|-----------|
+| «Modifier mon profil» / «Mon compte» | fr | sí |
+| «Numéro de maison» / «Département» / «Choisissez un département» | fr | sí |
+| «Format Haïti : 8 chiffres» (ayuda del teléfono) | fr | sí |
+| «Modifye pwofil ou» / «Nimewo kay» / «Komin (vil)» | ht | sí |
+| «Chwazi yon depatman» / «Fòma Ayiti» / «Fòma lokal: egzanp #113» | ht | sí |
+| Host de Supabase (configuración del cliente) | — | sí |
+
+Nota técnica: el compilador Hermes guarda las cadenas con acentos como
+UTF-16 y las ASCII como ASCII; la verificación busca ambas formas. Los
+workflows CI (typecheck + pruebas unitarias de `perfil.ts`, incluida la
+normalización del teléfono +509), App móvil, Consola admin y APK quedaron
+verdes en el mismo commit.
