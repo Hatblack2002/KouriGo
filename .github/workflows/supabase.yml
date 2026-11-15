@@ -96,6 +96,10 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: latest
+        env:
+          # Autentica la resolución de la versión ante la API de GitHub y
+          # evita el rate limit anónimo de los runners compartidos.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Desplegar las funciones al runtime de Edge Functions
         env:
