@@ -118,7 +118,7 @@ async function enviar(
   params: Record<string, string>,
   firma: string,
   archivo: string,
-): Promise<void> {
+): Promise<string> {
   const formulario = new FormData();
   formulario.append("file", archivo);
   formulario.append("api_key", credenciales.apiKey);
@@ -148,6 +148,9 @@ async function enviar(
   ) {
     throw new ErrorHttp(502, "El servicio de imágenes no devolvió la referencia.");
   }
+  // El proveedor devuelve el public_id completo (incluye la carpeta): esa
+  // es la referencia interna que debe guardarse y devolverse.
+  return resultado.public_id;
 }
 
 export async function procesar(req: Request): Promise<Response> {
@@ -166,23 +169,23 @@ export async function procesar(req: Request): Promise<Response> {
       );
     }
 
-    let carpeta: string;
     let publicId: string;
+    let publicIdSolicitado: string;
     let accionAuditoria: string;
 
     if (contexto === "avatar") {
       const archivo = leerArchivo(cuerpo, MAX_BASE64_AVATAR);
-      carpeta = `kourigo/avatares/${sesion.usuarioId}`;
-      publicId = `av-${sesion.usuarioId}`;
+      const carpeta = `kourigo/avatares/${sesion.usuarioId}`;
+      publicIdSolicitado = `av-${sesion.usuarioId}`;
       const marcaTiempo = Math.floor(Date.now() / 1000).toString();
       const params = {
         folder: carpeta,
         overwrite: "true",
-        public_id: publicId,
+        public_id: publicIdSolicitado,
         timestamp: marcaTiempo,
       };
       const firma = await firmaSha1(params, credenciales.apiSecret);
-      await enviar(credenciales, params, firma, archivo);
+      publicId = await enviar(credenciales, params, firma, archivo);
       accionAuditoria = "avatar_actualizado";
     } else {
       if (!(await esAdministrador(entorno, sesion))) {
@@ -202,16 +205,16 @@ export async function procesar(req: Request): Promise<Response> {
         );
       }
       const archivo = leerArchivo(cuerpo, MAX_BASE64_CATALOGO);
-      carpeta = `kourigo/catalogo/${categoria}`;
-      publicId = `pro-${crypto.randomUUID().replaceAll("-", "").slice(0, 20)}`;
+      const carpeta = `kourigo/catalogo/${categoria}`;
+      publicIdSolicitado = `pro-${crypto.randomUUID().replaceAll("-", "").slice(0, 20)}`;
       const marcaTiempo = Math.floor(Date.now() / 1000).toString();
       const params = {
         folder: carpeta,
-        public_id: publicId,
+        public_id: publicIdSolicitado,
         timestamp: marcaTiempo,
       };
       const firma = await firmaSha1(params, credenciales.apiSecret);
-      await enviar(credenciales, params, firma, archivo);
+      publicId = await enviar(credenciales, params, firma, archivo);
       accionAuditoria = "imagen_catalogo_subida";
     }
 
@@ -224,9 +227,9 @@ export async function procesar(req: Request): Promise<Response> {
     });
 
     // La URL de renderizado aplica las transformaciones fijas en la entrega;
-    // el proveedor queda camuflado: la interfaz nunca muestra ni nombra la
-    // cadena completa.
-    const url = `https://res.cloudinary.com/${credenciales.cloud}/image/upload/f_auto,q_auto/${carpeta}/${publicId}`;
+    // el public_id completo ya incluye la carpeta. El proveedor queda
+    // camuflado: la interfaz nunca muestra ni nombra la cadena completa.
+    const url = `https://res.cloudinary.com/${credenciales.cloud}/image/upload/f_auto,q_auto/${publicId}`;
 
     return respuestaJson(200, { public_id: publicId, url });
   } catch (error) {
