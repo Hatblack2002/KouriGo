@@ -78,9 +78,9 @@ const estilos = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: COLORES.grisSuperficie,
+    backgroundColor: COLORES.grisFondo,
     borderWidth: 1,
-    borderColor: COLORES.divisor,
+    borderColor: COLORES.borde,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -258,11 +258,16 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
       const archivo = `data:${mime};base64,${contenido}`;
       setSubiendoFoto(true);
       const { data: datosSesion } = await cliente.auth.getSession();
-      const accessToken = datosSesion.session?.accessToken ?? "";
+      const token = datosSesion.session?.access_token;
+      if (typeof token !== "string" || token.length === 0) {
+        setSubiendoFoto(false);
+        setError(texto(idioma, "error_red"));
+        return;
+      }
       const configuracion = leerConfiguracionPublica();
       const respuesta = await invocarFuncion<RespuestaSubida>(
         configuracion,
-        accessToken,
+        token,
         "subir-imagen",
         { contexto: "avatar", archivo },
       );

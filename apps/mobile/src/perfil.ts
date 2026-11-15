@@ -137,7 +137,10 @@ export async function guardarPerfilEdicion(
 ): Promise<ResultadoPerfil<string>> {
   const errores = validarPerfilEdicion(datos);
   if (errores.length > 0) {
-    return { tipo: "error", mensaje: texto(idioma, errores[0]) };
+    const primera = errores[0];
+    if (primera !== undefined) {
+      return { tipo: "error", mensaje: texto(idioma, primera) };
+    }
   }
   const telefono = normalizarTelefonoHaiti(datos.telefono);
   if (telefono === null) {
