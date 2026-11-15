@@ -13,8 +13,9 @@
  * Navegación por estado sin librerías extra: el alcance exige un flujo
  * completo y verificable, no un mapa de pantallas decorativo.
  */
+
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TipoPedido } from "@kourigo/domain";
 import { PantallaBienvenida } from "./src/pantalla-bienvenida";
@@ -23,7 +24,17 @@ import { PantallaPrincipalCliente } from "./src/pantalla-principal-cliente";
 import { PantallaPrincipalRepartidor } from "./src/pantalla-principal-repartidor";
 import { PantallaNuevoPedido } from "./src/pantalla-nuevo-pedido";
 import { PantallaDetallePedido } from "./src/pantalla-detalle-pedido";
-import { MensajeError, Marca, COLORES } from "./src/components";
+import { MensajeError, Marca } from "./src/components";
+import {
+  COLORES,
+  ESPACIADO,
+  FondoDegradado,
+  ImagenIlustracion,
+  LogoKouriGo,
+  RADIOS,
+  SOMBRAS,
+  TIPOGRAFIA,
+} from "./src/ui";
 import {
   almacenAsyncStorage,
   guardarIdioma,
@@ -58,20 +69,97 @@ const estilos = StyleSheet.create({
     backgroundColor: COLORES.blanco,
   },
   contenidoError: {
+    flex: 1,
+    justifyContent: "center",
     padding: 20,
-    marginTop: 48,
+    gap: 16,
   },
-  contenidoCentrado: {
+  splashContenedor: {
+    flex: 1,
+    backgroundColor: COLORES.verdeHeroOscuro,
+  },
+  splashContenido: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    paddingHorizontal: ESPACIADO.xl,
+    paddingVertical: ESPACIADO.xxl,
+    gap: ESPACIADO.xl,
   },
-  textoCargando: {
-    color: COLORES.grisTexto,
-    fontSize: 14,
+  splashInsigniaMarca: {
+    backgroundColor: COLORES.blanco,
+    borderRadius: RADIOS.xl,
+    paddingHorizontal: ESPACIADO.xxl,
+    paddingVertical: ESPACIADO.md,
+    ...SOMBRAS.tarjeta,
+  },
+  splashMarcoIlustracion: {
+    width: 224,
+    height: 224,
+    borderRadius: 28,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.28)",
+    backgroundColor: COLORES.verdeHeroOscuro,
+    ...SOMBRAS.tarjeta,
+  },
+  splashBloqueComercial: {
+    alignItems: "center",
+    gap: ESPACIADO.xs,
+    paddingHorizontal: ESPACIADO.md,
+  },
+  splashEslogan: {
+    ...TIPOGRAFIA.heroTitulo,
+    fontSize: 28,
+    lineHeight: 34,
+    color: COLORES.blanco,
+    textAlign: "center",
+  },
+  splashSubtitulo: {
+    ...TIPOGRAFIA.heroSubtitulo,
+    fontSize: 15,
+    lineHeight: 20,
+    color: "rgba(255, 255, 255, 0.92)",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  splashEstadoCarga: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ESPACIADO.sm,
+    marginTop: ESPACIADO.sm,
+  },
+  splashTextoCargando: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.85)",
   },
 });
+
+function PantallaSplashCarga({ idioma }: { readonly idioma: Idioma }) {
+  return (
+    <View style={estilos.splashContenedor}>
+      <FondoDegradado tipo="hero" />
+      <View style={estilos.splashContenido}>
+        <View style={estilos.splashInsigniaMarca}>
+          <LogoKouriGo tamano="grande" subtitulo={texto(idioma, "etiqueta_marca")} />
+        </View>
+        <View style={estilos.splashMarcoIlustracion}>
+          <ImagenIlustracion nombre="splashCourier" />
+        </View>
+        <View style={estilos.splashBloqueComercial}>
+          <Text style={estilos.splashEslogan}>{texto(idioma, "eslogan_hero")}</Text>
+          <Text style={estilos.splashSubtitulo}>{texto(idioma, "eslogan_hero_sub")}</Text>
+        </View>
+        <View style={estilos.splashEstadoCarga}>
+          <ActivityIndicator size="small" color={COLORES.blanco} />
+          <Text style={estilos.splashTextoCargando}>{texto(idioma, "cargando")}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default function App() {
   const [idioma, setIdiomaEstado] = useState<Idioma>("fr");
@@ -95,6 +183,7 @@ export default function App() {
       const clienteApp = crearClienteApp(config, almacenAsyncStorage());
       setConfiguracion(config);
       setCliente(clienteApp);
+
       void Promise.all([sesionActual(clienteApp), leerIdiomaGuardado()]).then(
         ([sesionRestaurada, idiomaGuardado]) => {
           if (!activo) {
@@ -117,6 +206,7 @@ export default function App() {
           setCargandoInicial(false);
         },
       );
+
       cancelar = suscribirseCambiosSesion(clienteApp, (sesionNueva) => {
         setSesion(sesionNueva);
         if (sesionNueva === null) {
@@ -140,6 +230,7 @@ export default function App() {
       setErrorConfiguracion(mensaje);
       setCargandoInicial(false);
     }
+
     return () => {
       activo = false;
       cancelar();
@@ -163,14 +254,7 @@ export default function App() {
   }
 
   if (cargandoInicial || cliente === null || configuracion === null) {
-    return (
-      <View style={estilos.contenedor}>
-        <View style={estilos.contenidoCentrado}>
-          <Marca idioma={idioma} centrado={true} />
-          <Text style={estilos.textoCargando}>{texto(idioma, "cargando")}</Text>
-        </View>
-      </View>
-    );
+    return <PantallaSplashCarga idioma={idioma} />;
   }
 
   if (sesion === null) {
@@ -219,14 +303,7 @@ export default function App() {
   if (sesion !== null && esCourier === null) {
     // El rol efectivo viene del backend (user_roles): mientras se consulta,
     // se mantiene la pantalla de carga. No se adivina ningún rol.
-    return (
-      <View style={estilos.contenedor}>
-        <View style={estilos.contenidoCentrado}>
-          <Marca idioma={idioma} centrado={true} />
-          <Text style={estilos.textoCargando}>{texto(idioma, "cargando")}</Text>
-        </View>
-      </View>
-    );
+    return <PantallaSplashCarga idioma={idioma} />;
   }
 
   if (ruta.nombre === "nuevo") {

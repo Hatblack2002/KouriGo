@@ -4,9 +4,19 @@
     "slug": "kourigo",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#014B20"
+    },
     "android": {
-      "package": "com.kourigo.app"
+      "package": "com.kourigo.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#014B20"
+      }
     }
   }
 }
