@@ -71,13 +71,11 @@ describe("validarPerfilEdicion", () => {
   });
 
   it("exige departamento, ville y número de casa", () => {
-    expect(
-      validarPerfilEdicion({ ...datosValidos(), departamento: "" }),
-    ).toContain("err_departamento_vacio");
-    expect(validarPerfilEdicion({ ...datosValidos(), ville: "" })).toContain("err_ville_vacio");
-    expect(validarPerfilEdicion({ ...datosValidos(), numeroCasa: "" })).toContain(
-      "err_casa_vacio",
+    expect(validarPerfilEdicion({ ...datosValidos(), departamento: "" })).toContain(
+      "err_departamento_vacio",
     );
+    expect(validarPerfilEdicion({ ...datosValidos(), ville: "" })).toContain("err_ville_vacio");
+    expect(validarPerfilEdicion({ ...datosValidos(), numeroCasa: "" })).toContain("err_casa_vacio");
   });
 });
 
@@ -93,9 +91,9 @@ describe("componerDireccionEntrega", () => {
   });
 
   it("omite las partes vacías sin separadores colgantes", () => {
-    expect(componerDireccionEntrega({ numero_casa: null, ville: "Delmas", departamento: null })).toBe(
-      "Delmas",
-    );
+    expect(
+      componerDireccionEntrega({ numero_casa: null, ville: "Delmas", departamento: null }),
+    ).toBe("Delmas");
     expect(componerDireccionEntrega({ numero_casa: null, ville: null, departamento: null })).toBe(
       "",
     );

@@ -330,7 +330,11 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
         <View style={estilos.filaAvatar}>
           <View style={estilos.avatar}>
             {perfil?.avatar_url ? (
-              <Image source={{ uri: perfil.avatar_url }} style={estilos.avatarImagen} resizeMode="cover" />
+              <Image
+                source={{ uri: perfil.avatar_url }}
+                style={estilos.avatarImagen}
+                resizeMode="cover"
+              />
             ) : (
               <Text style={estilos.avatarInicial}>{inicial}</Text>
             )}

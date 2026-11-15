@@ -150,8 +150,7 @@ export async function guardarPerfilEdicion(
       phone: telefono,
       departamento: datos.departamento,
       ville: datos.ville.trim(),
-      codigo_postal:
-        datos.codigoPostal.trim().length > 0 ? datos.codigoPostal.trim() : null,
+      codigo_postal: datos.codigoPostal.trim().length > 0 ? datos.codigoPostal.trim() : null,
       numero_casa: datos.numeroCasa.trim(),
     })
     .eq("id", usuarioId);
