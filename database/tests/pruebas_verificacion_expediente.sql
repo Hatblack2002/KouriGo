@@ -818,8 +818,17 @@ SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-0000000000c4"}'
 
 SELECT public.afirmar(
   (SELECT count(*) FROM storage.objects
-   WHERE bucket_id = 'courier-identity-private') = 4,
+   WHERE bucket_id = 'courier-identity-private'
+     AND name IN (
+       'a0000000-0000-4000-8000-0000000000c1' || '/selfie-1.jpg',
+       'a0000000-0000-4000-8000-0000000000c1' || '/national-id-back.jpg',
+       'a0000000-0000-4000-8000-0000000000c2' || '/selfie-1.jpg',
+       'a0000000-0000-4000-8000-0000000000c2' || '/passport-1.jpg'
+     )) = 4,
   'la administración puede revisar todos los documentos privados');
+-- Nota: se verifican los cuatro objetos de prueba por nombre en lugar de
+-- contar el bucket entero, para que la prueba siga siendo válida cuando el
+-- proyecto ya contenga documentos reales de repartidores.
 
 SELECT public.afirmar(
   (SELECT count(*) FROM public.courier_verification_events
