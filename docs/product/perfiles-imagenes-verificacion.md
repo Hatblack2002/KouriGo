@@ -1,9 +1,8 @@
 # Perfiles, imágenes y verificación — definición de producto
 
-> Estado: definición acordada con el fundador (2026-11-15). Pendiente de
-> implementación: espera de las credenciales de Cloudinary (sección 2).
-> Este documento define el modelo completo antes de escribir código, para
-> hacerlo en un solo trabajo coherente.
+> Estado (2026-11-15): credenciales recibidas y configuradas; la Edge
+> Function `subir-imagen` está implementada, desplegada al runtime y
+> probada E2E (ver sección 8). Siguiente paso: migración 0006 y la APK.
 
 ---
 
@@ -173,20 +172,42 @@ con la insignia y la navegación a la pantalla de inspección.
 
 1. **Migración 0006:** columnas de perfil cliente en `profiles` + RPC
    `perfil_publico_repartidor` + políticas RLS. Verificación: CI de base de
-   datos verde.
+   datos verde. — **PENDIENTE**
 2. **Edge Function `subir-imagen`:** autenticación Supabase; cliente sube
    solo su avatar (`avatares/<user_id>/`), admin sube solo catálogo
    (`catalogo/<categoria>/`); firma Cloudinary server-side; devuelve
-   `public_id`. Verificación: pruebas de la función en CI.
+   `public_id`. Verificación: pruebas de la función en CI. — **HECHO**
+   (commit `01d3dc2` + `06a7c1b`; desplegada por el workflow
+   `Supabase (proyecto real)`; runtime exige JWT; secret `CLOUDINARY_URL`
+   configurado en GitHub Secrets y en el runtime de Supabase)
 3. **APK — Mi cuenta editable:** pantalla con los 7 campos, validación
    +509, selector de departamento, subida de foto camuflada, y prellenado
    de la dirección al crear pedido. Verificación: APK nueva, cadenas de
-   texto presentes en el bundle.
+   texto presentes en el bundle. — **PENDIENTE**
 4. **APK — insignia + certificado + inspección:** insignia junto al nombre,
    certificado en el perfil del repartidor, vista de inspección para el
-   cliente desde su pedido. Verificación: APK nueva.
+   cliente desde su pedido. Verificación: APK nueva. — **PENDIENTE**
 5. **Consola admin — catálogo con fotos:** alta de productos con imagen,
    solo admin, todo camuflado. Verificación: consola en GitHub Pages.
+   — **PENDIENTE**
 
 Cada paso entra a `main` con su commit y se comprueba en GitHub Actions
 antes de pasar al siguiente. Nada se declara terminado sin evidencia.
+
+## 8. Evidencia de la verificación E2E del paso 2 (2026-11-15)
+
+Prueba completa contra el proyecto real con un usuario de prueba creado y
+eliminado en la misma prueba (no queda ningún dato falso):
+
+| # | Escenario | Resultado |
+|---|-----------|-----------|
+| 1 | Catálogo sin rol admin | 403 "Solo un administrador puede agregar imágenes al catálogo" |
+| 2 | Catálogo con rol admin | 200, `public_id = kourigo/catalogo/cat_electronique/pro-…` |
+| 3 | URL de entrega (f_auto,q_auto) | HTTP 200, imagen renderizada |
+| 4 | Avatar del propio usuario | 200, `public_id = kourigo/avatares/<user_id>/av-…` |
+| 5 | Formato no admitido (PDF) | 400 "Formato no admitido: solo JPEG, PNG o WebP" |
+| 6 | Limpieza | imágenes destruidas (result: ok), auditoría, rol y usuario de prueba eliminados |
+
+Además: plan Cloudinary verificado Free con 2.72 % de créditos usados;
+credenciales validadas contra `/ping` (`status: ok`); sin token la función
+responde 401 (verificado por el workflow en el runtime).
