@@ -17,6 +17,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#014B20"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "KouriGo accede a tus fotos solo para tu foto de perfil. / KouriGo aksè foto ou sèlman pou foto pwofil ou.",
+          "cameraPermission": false
+        }
+      ]
+    ]
   }
 }

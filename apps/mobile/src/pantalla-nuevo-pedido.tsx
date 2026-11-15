@@ -7,7 +7,7 @@
  * Estilo según la maqueta aprobada: selección de tipo en tarjetas grandes,
  * bloques agrupados y botón verde al final. Incluye vuelta a la lista.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ArticuloPedido, TipoPedido } from "@kourigo/domain";
@@ -17,6 +17,7 @@ import {
   validarFormularioPedido,
   type DatosFormularioPedido,
 } from "./pedidos";
+import { componerDireccionEntrega, leerPerfilPropio, type FilaPerfil } from "./perfil";
 import { texto, type ClaveTexto, type Idioma } from "./i18n";
 
 const estilos = StyleSheet.create({
@@ -150,6 +151,31 @@ export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver, tipoI
   const [errores, setErrores] = useState<readonly ClaveTexto[]>([]);
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [destinoPrecargado, setDestinoPrecargado] = useState(false);
+
+  // La dirección de entrega se PRELLENA desde el perfil del cliente
+  // (migración 0006, decisión del fundador 2026-11-15): número de casa,
+  // ville y departamento son exactamente los datos que permiten al
+  // repartidor llegar. El cliente la puede editar aquí antes de crear el
+  // pedido. El prellenado ocurre solo si el campo está vacío.
+  useEffect(() => {
+    let activo = true;
+    void (async () => {
+      const resultado = await leerPerfilPropio(cliente);
+      if (!activo || resultado.tipo !== "ok" || resultado.datos === null) {
+        return;
+      }
+      const perfil: FilaPerfil = resultado.datos;
+      const direccion = componerDireccionEntrega(perfil);
+      if (direccion.length > 0) {
+        setDestino((actual) => (actual.trim().length === 0 ? direccion : actual));
+        setDestinoPrecargado(true);
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, [cliente]);
 
   const items = useMemo<readonly ArticuloPedido[]>(() => {
     return articulos.map((articulo) => {
@@ -247,6 +273,11 @@ export function PantallaNuevoPedido({ idioma, cliente, alCreado, alVolver, tipoI
           alCambiar={setDestino}
           multilinea={true}
         />
+        {destinoPrecargado && destino.trim().length > 0 ? (
+          <Text style={{ fontSize: 12, color: COLORES.grisTexto, marginTop: 4 }}>
+            {texto(idioma, "direccion_precargada")}
+          </Text>
+        ) : null}
         {tipo === "assisted_purchase" ? (
           <CampoTexto
             etiqueta={texto(idioma, "comercio")}

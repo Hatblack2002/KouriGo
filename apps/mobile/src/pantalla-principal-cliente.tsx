@@ -42,6 +42,7 @@ import {
 import { Aviso, BarraIdiomas, MensajeError, COLORES } from "./components";
 import { texto, type Idioma } from "./i18n";
 import { leerPerfilPropio, type FilaPerfil } from "./perfil";
+import { PantallaMiCuenta } from "./pantalla-mi-cuenta";
 import { PantallaListaPedidos } from "./pantalla-lista-pedidos";
 
 const estilos = StyleSheet.create({
@@ -132,6 +133,7 @@ export function PantallaPrincipalCliente({
   const [busqueda, setBusqueda] = useState("");
   const [perfil, setPerfil] = useState<FilaPerfil | null>(null);
   const [errorPerfil, setErrorPerfil] = useState<string | null>(null);
+  const [editandoPerfil, setEditandoPerfil] = useState(false);
 
   const cargarPerfil = useCallback(async () => {
     setErrorPerfil(null);
@@ -317,30 +319,50 @@ export function PantallaPrincipalCliente({
         slotDerecha={<IconoIdioma />}
         alPulsarDerecha={() => setPestaña("accueil")}
       />
-      {errorPerfil !== null ? <MensajeError mensaje={errorPerfil} /> : null}
-      <View style={estilos.perfilTarjeta}>
-        <Text style={estilos.perfilNombre} numberOfLines={1}>
-          {perfil !== null && perfil.full_name !== null && perfil.full_name.trim().length > 0
-            ? perfil.full_name
-            : (correo ?? "")}
-        </Text>
-        <Text style={estilos.perfilCorreo} numberOfLines={1}>
-          {correo ?? ""}
-        </Text>
-        <Text style={estilos.perfilRol}>{texto(idioma, "rol_cliente")}</Text>
-        <View style={estilos.filaIdioma}>
-          <Text style={{ color: COLORES.grisTexto, fontSize: 13, fontWeight: "700" }}>
-            {texto(idioma, "idioma")}
-          </Text>
-          <BarraIdiomas idioma={idioma} alCambiar={alCambiarIdioma} />
-        </View>
-        <View style={{ marginTop: 16 }}>
-          <BotonSecundario
-            etiqueta={texto(idioma, "nuevo_pedido")}
-            alPulsar={() => alNuevoPedido("delivery")}
-          />
-        </View>
-      </View>
+      {editandoPerfil ? (
+        <PantallaMiCuenta
+          idioma={idioma}
+          cliente={cliente}
+          correo={correo}
+          alGuardado={() => {
+            void cargarPerfil();
+          }}
+          alVolver={() => setEditandoPerfil(false)}
+        />
+      ) : (
+        <>
+          {errorPerfil !== null ? <MensajeError mensaje={errorPerfil} /> : null}
+          <View style={estilos.perfilTarjeta}>
+            <Text style={estilos.perfilNombre} numberOfLines={1}>
+              {perfil !== null && perfil.full_name !== null && perfil.full_name.trim().length > 0
+                ? perfil.full_name
+                : (correo ?? "")}
+            </Text>
+            <Text style={estilos.perfilCorreo} numberOfLines={1}>
+              {correo ?? ""}
+            </Text>
+            <Text style={estilos.perfilRol}>{texto(idioma, "rol_cliente")}</Text>
+            <View style={estilos.filaIdioma}>
+              <Text style={{ color: COLORES.grisTexto, fontSize: 13, fontWeight: "700" }}>
+                {texto(idioma, "idioma")}
+              </Text>
+              <BarraIdiomas idioma={idioma} alCambiar={alCambiarIdioma} />
+            </View>
+            <View style={{ marginTop: 16 }}>
+              <BotonSecundario
+                etiqueta={texto(idioma, "editar_perfil")}
+                alPulsar={() => setEditandoPerfil(true)}
+              />
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <BotonSecundario
+                etiqueta={texto(idioma, "nuevo_pedido")}
+                alPulsar={() => alNuevoPedido("delivery")}
+              />
+            </View>
+          </View>
+        </>
+      )}
       <View style={{ flex: 1 }} />
       <View style={estilos.pieSalir}>
         <Text onPress={alCerrarSesion} style={estilos.enlaceSalir}>
