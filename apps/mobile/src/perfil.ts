@@ -65,7 +65,7 @@ export async function asegurarPerfilPropio(
     return { tipo: "error", mensaje: `profiles: ${error.message}` };
   }
   if (data !== null) {
-    return { tipo: "ok", datos: (data ?? null) as FilaPerfil };
+    return { tipo: "ok", datos: data as unknown as FilaPerfil };
   }
   // La fila no existe: se crea de inmediato y se devuelve la fila real.
   const { data: creada, error: errorCrear } = await cliente
@@ -76,7 +76,7 @@ export async function asegurarPerfilPropio(
   if (errorCrear !== null) {
     return { tipo: "error", mensaje: `profiles: ${errorCrear.message}` };
   }
-  return { tipo: "ok", datos: (creada ?? null) as FilaPerfil };
+  return { tipo: "ok", datos: creada as unknown as FilaPerfil };
 }
 
 export async function guardarNombrePerfil(
