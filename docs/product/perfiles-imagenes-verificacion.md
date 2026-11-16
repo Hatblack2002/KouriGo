@@ -235,3 +235,37 @@ UTF-16 y las ASCII como ASCII; la verificación busca ambas formas. Los
 workflows CI (typecheck + pruebas unitarias de `perfil.ts`, incluida la
 normalización del teléfono +509), App móvil, Consola admin y APK quedaron
 verdes en el mismo commit.
+
+## 10. Incidente 2026-11-16 — perfil sin fila y uuid vacío (resuelto)
+
+Fallo real reportado por el fundador al cambiar la foto desde la APK
+publicada: `profiles: invalid input syntax for type uuid: ""`.
+
+**Causa raíz (verificada en la base real):** los usuarios registrados con
+versiones anteriores de la app no tenían fila en `profiles` (ninguna
+migración la crea de forma automática; al 2026-11-16 había 0 filas para 3
+usuarios). `pantalla-mi-cuenta` enviaba `perfil?.id ?? ""` al actualizar y
+PostgREST rechazaba el uuid vacío.
+
+**Corrección (commit `6195703`):**
+
+1. Desbloqueo inmediato del proyecto real: se creó la fila `profiles` de
+   los 3 usuarios reales (operación directa del fundador, registrada aquí).
+2. `asegurarPerfilPropio()` en `apps/mobile/src/perfil.ts`: si la fila no
+   existe se crea al instante (RLS `perfiles_insertar_propio`) y se
+   devuelve la fila real; el id ya nunca sale de una fila inexistente.
+3. La carga, el guardado y la subida de foto de «Mi cuenta» y la concha
+   del cliente usan la autocura; el avatar exige `public_id` y URL antes
+   de actualizar.
+
+**Evidencia E2E contra el proyecto real
+(`scripts/prueba_autocura_perfil.py`):** 7/7 pasos OK — usuario temporal
+sin fila (GET `[]`), creación propia `201` (RLS insert propio), actualización
+`200` (RLS update propio), relectura con los 7 campos + avatar persistidos,
+limpieza completa (0 usuarios y 0 filas de prueba).
+
+**CI y APK:** CI verde en `6195703` (formato, lint, tipos, pruebas
+unitarias, Deno y base de datos). APK reconstruido y publicado en la
+etiqueta `prueba-apk`: SHA-256 `1868904c…1963b1`, idéntico al artefacto del
+run `43960335766`; el bundle cambió respecto al APK anterior
+(`2045336` → `2047352` bytes).
