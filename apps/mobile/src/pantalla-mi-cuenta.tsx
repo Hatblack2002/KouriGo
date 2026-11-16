@@ -22,10 +22,10 @@ import { leerConfiguracionPublica } from "./configuracion";
 import { invocarFuncion } from "./funciones";
 import {
   DEPARTAMENTOS_HAITI,
+  asegurarPerfilPropio,
   componerDireccionEntrega,
   guardarAvatarPerfil,
   guardarPerfilEdicion,
-  leerPerfilPropio,
   type DatosPerfilEdicion,
   type FilaPerfil,
 } from "./perfil";
@@ -202,7 +202,10 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
   useEffect(() => {
     let activo = true;
     void (async () => {
-      const resultado = await leerPerfilPropio(cliente);
+      // Autocura: si el usuario aún no tiene fila en `profiles` (registrado
+      // con una versión anterior de la app) se crea aquí mismo y se usa la
+      // fila real; el id nunca vuelve a ser vacío.
+      const resultado = await asegurarPerfilPropio(cliente);
       if (!activo) {
         return;
       }
@@ -276,12 +279,28 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
         setError(respuesta.mensajeError ?? texto(idioma, "err_foto_leida"));
         return;
       }
-      const guardado = await guardarAvatarPerfil(
-        cliente,
-        perfil?.id ?? "",
-        respuesta.datos.public_id ?? "",
-        respuesta.datos.url ?? "",
-      );
+      const publicId = respuesta.datos.public_id;
+      const urlEntrega = respuesta.datos.url;
+      if (
+        typeof publicId !== "string" ||
+        publicId.length === 0 ||
+        typeof urlEntrega !== "string" ||
+        urlEntrega.length === 0
+      ) {
+        setError(texto(idioma, "err_foto_leida"));
+        return;
+      }
+      let fila = perfil;
+      if (fila === null) {
+        const asegurado = await asegurarPerfilPropio(cliente);
+        if (asegurado.tipo !== "ok") {
+          setError(asegurado.mensaje);
+          return;
+        }
+        fila = asegurado.datos;
+        setPerfil(fila);
+      }
+      const guardado = await guardarAvatarPerfil(cliente, fila.id, publicId, urlEntrega);
       if (guardado.tipo !== "ok") {
         setError(guardado.mensaje);
         return;
@@ -298,9 +317,16 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
   async function guardar(): Promise<void> {
     setError(null);
     setAvisoExito(null);
-    if (perfil === null) {
-      setError(texto(idioma, "desconocido"));
-      return;
+    // Autocura: si la fila del perfil aún no existe se crea aquí mismo.
+    let fila = perfil;
+    if (fila === null) {
+      const asegurado = await asegurarPerfilPropio(cliente);
+      if (asegurado.tipo !== "ok") {
+        setError(asegurado.mensaje);
+        return;
+      }
+      fila = asegurado.datos;
+      setPerfil(fila);
     }
     const datos: DatosPerfilEdicion = {
       nombreCompleto: nombre,
@@ -310,7 +336,7 @@ export function PantallaMiCuenta({ idioma, cliente, correo, alGuardado, alVolver
       codigoPostal,
       numeroCasa,
     };
-    const resultado = await guardarPerfilEdicion(cliente, perfil.id, idioma, datos);
+    const resultado = await guardarPerfilEdicion(cliente, fila.id, idioma, datos);
     if (resultado.tipo !== "ok") {
       setError(resultado.mensaje);
       return;

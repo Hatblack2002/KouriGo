@@ -27,20 +27,56 @@ export interface FilaPerfil {
 
 export type ResultadoPerfil<T> = { tipo: "ok"; datos: T } | { tipo: "error"; mensaje: string };
 
+const CAMPOS_PERFIL =
+  "id, full_name, phone, locale, departamento, ville, codigo_postal, " +
+  "numero_casa, avatar_public_id, avatar_url";
+
 export async function leerPerfilPropio(
   cliente: SupabaseClient,
 ): Promise<ResultadoPerfil<FilaPerfil | null>> {
-  const { data, error } = await cliente
-    .from("profiles")
-    .select(
-      "id, full_name, phone, locale, departamento, ville, codigo_postal, " +
-        "numero_casa, avatar_public_id, avatar_url",
-    )
-    .maybeSingle();
+  const { data, error } = await cliente.from("profiles").select(CAMPOS_PERFIL).maybeSingle();
   if (error !== null) {
     return { tipo: "error", mensaje: `profiles: ${error.message}` };
   }
   return { tipo: "ok", datos: (data ?? null) as FilaPerfil | null };
+}
+
+/**
+ * Garantiza que el usuario autenticado tenga su fila en `profiles` y la
+ * devuelve. Fallo real del 2026-11-16: usuarios registrados con versiones
+ * anteriores de la app no tienen la fila (ninguna migración la crea de
+ * forma automática) y al guardar la foto se enviaba un id vacío, lo que
+ * provocaba «profiles: invalid input syntax for type uuid: ""». Aquí la
+ * pantalla se autocura: si la fila no existe se crea de inmediato (RLS
+ * «perfiles_insertar_propio» permite insertar únicamente la fila propia) y
+ * se devuelve la fila real, para que editar el perfil o subir el avatar
+ * siempre trabaje con un id auténtico de la sesión.
+ */
+export async function asegurarPerfilPropio(
+  cliente: SupabaseClient,
+): Promise<ResultadoPerfil<FilaPerfil>> {
+  const { data: datosSesion } = await cliente.auth.getSession();
+  const usuarioId = datosSesion.session?.user.id ?? "";
+  if (usuarioId.length === 0) {
+    return { tipo: "error", mensaje: "auth: sesión ausente" };
+  }
+  const { data, error } = await cliente.from("profiles").select(CAMPOS_PERFIL).maybeSingle();
+  if (error !== null) {
+    return { tipo: "error", mensaje: `profiles: ${error.message}` };
+  }
+  if (data !== null) {
+    return { tipo: "ok", datos: data as FilaPerfil };
+  }
+  // La fila no existe: se crea de inmediato y se devuelve la fila real.
+  const { data: creada, error: errorCrear } = await cliente
+    .from("profiles")
+    .upsert({ id: usuarioId })
+    .select(CAMPOS_PERFIL)
+    .single();
+  if (errorCrear !== null) {
+    return { tipo: "error", mensaje: `profiles: ${errorCrear.message}` };
+  }
+  return { tipo: "ok", datos: creada as FilaPerfil };
 }
 
 export async function guardarNombrePerfil(

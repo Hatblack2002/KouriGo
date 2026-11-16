@@ -41,7 +41,7 @@ import {
 } from "./iconos-maqueta";
 import { Aviso, BarraIdiomas, MensajeError, COLORES } from "./components";
 import { texto, type Idioma } from "./i18n";
-import { leerPerfilPropio, type FilaPerfil } from "./perfil";
+import { asegurarPerfilPropio, type FilaPerfil } from "./perfil";
 import { PantallaMiCuenta } from "./pantalla-mi-cuenta";
 import { PantallaListaPedidos } from "./pantalla-lista-pedidos";
 
@@ -137,7 +137,8 @@ export function PantallaPrincipalCliente({
 
   const cargarPerfil = useCallback(async () => {
     setErrorPerfil(null);
-    const resultado = await leerPerfilPropio(cliente);
+    // Autocura: si la fila del perfil aún no existe se crea al abrir la app.
+    const resultado = await asegurarPerfilPropio(cliente);
     if (resultado.tipo === "ok") {
       setPerfil(resultado.datos);
       return;
